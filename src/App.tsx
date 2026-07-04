@@ -19,6 +19,7 @@ type ModalState =
   | { type: 'none' }
   | { type: 'addToDay'; target: AddTarget }
   | { type: 'customEvent' }
+  | { type: 'editEvent'; item: ScheduledItem }
   | { type: 'libraryItem'; kind: 'activity' | 'restaurant' }
 
 export default function App() {
@@ -128,6 +129,7 @@ export default function App() {
         restaurants={restaurants}
         lastAddedId={lastAddedId}
         onDropPayload={handleDropPayload}
+        onEdit={(item) => setModal({ type: 'editEvent', item })}
         onRemove={handleRemove}
         onToggleMeal={handleToggleMeal}
         onExport={() => downloadICS(state.scheduled, { activities, restaurants })}
@@ -195,6 +197,21 @@ export default function App() {
           onClose={() => setModal({ type: 'none' })}
           onSave={(item) => {
             addScheduled(item)
+            setModal({ type: 'none' })
+          }}
+        />
+      )}
+      {modal.type === 'editEvent' && (
+        <CustomEventModal
+          initial={modal.item}
+          displayTitle={
+            modal.item.kind === 'restaurant'
+              ? restaurants.find((r) => r.id === modal.item.refId)?.name
+              : activities.find((a) => a.id === modal.item.refId)?.title
+          }
+          onClose={() => setModal({ type: 'none' })}
+          onSave={(item) => {
+            setState((s) => ({ ...s, scheduled: s.scheduled.map((it) => (it.id === item.id ? item : it)) }))
             setModal({ type: 'none' })
           }}
         />

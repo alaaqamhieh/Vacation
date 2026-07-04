@@ -12,6 +12,7 @@ interface Props {
   restaurants: Restaurant[]
   lastAddedId: string | null
   onDropPayload: (payload: DragPayload, date: string) => void
+  onEdit: (item: ScheduledItem) => void
   onRemove: (item: ScheduledItem) => void
   onToggleMeal: (id: string) => void
   onExport: () => void
@@ -94,7 +95,10 @@ export default function Itinerary(props: Props) {
             {r.meal}
           </button>
         )}
-        <button className="slot-x" onClick={() => props.onRemove(item)} aria-label={`Remove ${r.title}`}>
+        <button className="slot-x slot-edit" onClick={() => props.onEdit(item)} aria-label={`Edit ${r.title}`} title="Edit">
+          ✎
+        </button>
+        <button className="slot-x" onClick={() => props.onRemove(item)} aria-label={`Remove ${r.title}`} title="Remove">
           ✕
         </button>
       </div>

@@ -1,23 +1,44 @@
 import { useState } from 'react'
 import Modal from './Modal'
 import { tripDays, formatShort, weekdayShort } from '../dateUtils'
-import type { ScheduledItem } from '../types'
+import type { MealSlot, ScheduledItem } from '../types'
 
 interface Props {
+  /** When set, the modal edits this item in place instead of creating a new one. */
+  initial?: ScheduledItem
+  /** Resolved display name for library-backed items (title/emoji live in the library). */
+  displayTitle?: string
   onSave: (item: ScheduledItem) => void
   onClose: () => void
 }
 
-/** Create a one-off event or pinned important date directly on the calendar. */
-export default function CustomEventModal({ onSave, onClose }: Props) {
-  const [title, setTitle] = useState('')
-  const [emoji, setEmoji] = useState('🎉')
-  const [date, setDate] = useState(tripDays()[0])
-  const [note, setNote] = useState('')
-  const [important, setImportant] = useState(false)
+/** Create a one-off event / important date, or edit any scheduled item. */
+export default function CustomEventModal({ initial, displayTitle, onSave, onClose }: Props) {
+  const editing = !!initial
+  // Library-backed items keep their title/emoji from the activity/restaurant.
+  const libraryItem = !!initial?.refId
+  const [title, setTitle] = useState(initial?.title ?? '')
+  const [emoji, setEmoji] = useState(initial?.emoji ?? '🎉')
+  const [date, setDate] = useState(initial?.date ?? tripDays()[0])
+  const [note, setNote] = useState(initial?.note ?? '')
+  const [important, setImportant] = useState(initial?.milestone ?? false)
+  const [meal, setMeal] = useState<MealSlot>(initial?.meal ?? 'dinner')
+
+  const canSave = libraryItem || title.trim().length > 0
 
   const save = () => {
-    if (!title.trim()) return
+    if (!canSave) return
+    if (initial) {
+      onSave({
+        ...initial,
+        date,
+        note: note.trim() || undefined,
+        ...(libraryItem
+          ? { meal: initial.meal ? meal : undefined }
+          : { title: title.trim(), emoji, milestone: important }),
+      })
+      return
+    }
     onSave({
       id: `custom-${Date.now()}`,
       date,
@@ -31,18 +52,26 @@ export default function CustomEventModal({ onSave, onClose }: Props) {
 
   return (
     <Modal onClose={onClose}>
-      <h3>Add an event</h3>
+      <h3>{editing ? `Edit “${libraryItem ? displayTitle : initial?.title ?? 'event'}”` : 'Add an event'}</h3>
       <p style={{ color: 'var(--text-soft)', margin: '4px 0 0', fontSize: '0.9rem' }}>
-        Family dinners, reservations, henna night — anything with a date.
+        {editing
+          ? libraryItem
+            ? 'Move it, add a note, or switch the meal.'
+            : 'Rename it, move it, or update the note.'
+          : 'Family dinners, reservations, henna night — anything with a date.'}
       </p>
-      <div className="field">
-        <label>What is it?</label>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Dinner at Aunt Rana's" autoFocus />
-      </div>
-      <div className="field">
-        <label>Emoji</label>
-        <input value={emoji} onChange={(e) => setEmoji(e.target.value)} maxLength={4} style={{ width: 80 }} />
-      </div>
+      {!libraryItem && (
+        <>
+          <div className="field">
+            <label>What is it?</label>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Dinner at Aunt Rana's" autoFocus />
+          </div>
+          <div className="field">
+            <label>Emoji</label>
+            <input value={emoji} onChange={(e) => setEmoji(e.target.value)} maxLength={4} style={{ width: 80 }} />
+          </div>
+        </>
+      )}
       <div className="field">
         <label>Day</label>
         <select value={date} onChange={(e) => setDate(e.target.value)}>
@@ -53,19 +82,32 @@ export default function CustomEventModal({ onSave, onClose }: Props) {
           ))}
         </select>
       </div>
+      {libraryItem && initial?.meal && (
+        <div className="field">
+          <label>Meal</label>
+          <div className="view-toggle" style={{ alignSelf: 'flex-start' }}>
+            <button className={meal === 'lunch' ? 'on' : ''} onClick={() => setMeal('lunch')}>☀️ Lunch</button>
+            <button className={meal === 'dinner' ? 'on' : ''} onClick={() => setMeal('dinner')}>🌙 Dinner</button>
+          </div>
+        </div>
+      )}
       <div className="field">
         <label>Note (optional)</label>
         <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} />
       </div>
-      <div className="field">
-        <label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}>
-          <input type="checkbox" checked={important} onChange={(e) => setImportant(e.target.checked)} />
-          Important date — pin it like the wedding (asks before removal)
-        </label>
-      </div>
+      {!libraryItem && (
+        <div className="field">
+          <label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}>
+            <input type="checkbox" checked={important} onChange={(e) => setImportant(e.target.checked)} />
+            Important date — pin it like the wedding (asks before removal)
+          </label>
+        </div>
+      )}
       <div className="modal-actions">
         <button className="btn ghost" onClick={onClose}>Cancel</button>
-        <button className="btn" onClick={save} disabled={!title.trim()}>Add to calendar</button>
+        <button className="btn" onClick={save} disabled={!canSave}>
+          {editing ? 'Save changes' : 'Add to calendar'}
+        </button>
       </div>
     </Modal>
   )

@@ -1,4 +1,4 @@
-import { STORAGE_KEY, STORAGE_VERSION } from './config'
+import { OLD_WEDDING_LABEL, STORAGE_KEY, STORAGE_VERSION, TRIP } from './config'
 import type { TripState } from './types'
 import { SEED_SCHEDULE } from './data'
 
@@ -22,11 +22,15 @@ export function loadState(): TripState {
     const parsed = JSON.parse(raw) as Partial<TripState>
     if (parsed.version !== STORAGE_VERSION) return defaultState()
     const base = defaultState()
+    // Migrate plans saved before the wedding got the couple's names.
+    const scheduled = (Array.isArray(parsed.scheduled) ? parsed.scheduled : base.scheduled).map((it) =>
+      it.id === 'ms-wedding' && it.title === OLD_WEDDING_LABEL ? { ...it, title: TRIP.weddingLabel } : it,
+    )
     return {
       ...base,
       ...parsed,
       version: STORAGE_VERSION,
-      scheduled: Array.isArray(parsed.scheduled) ? parsed.scheduled : base.scheduled,
+      scheduled,
       customActivities: parsed.customActivities ?? [],
       customRestaurants: parsed.customRestaurants ?? [],
       shortlist: parsed.shortlist ?? [],

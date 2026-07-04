@@ -20,7 +20,7 @@ export default function Hero({ theme, onToggleTheme }: Props) {
         </button>
       </div>
       <div className="container hero-inner hero-stagger">
-        <p className="hero-kicker">Yalla, we're going home for a bit</p>
+        <p className="hero-kicker">{TRIP.heroKicker}</p>
         <h1 className="hero-title">{TRIP.destination.split(',')[0]} 2026</h1>
         <p className="hero-names">{TRIP.travelers} · {TRIP.destination}</p>
         <p className="hero-dates">{formatShort(TRIP.startDate)} — {formatShort(TRIP.endDate)}, 2026</p>

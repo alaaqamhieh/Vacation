@@ -524,6 +524,7 @@ section { padding: 64px 0 26px; }
 }
 .slot:hover .slot-x { opacity: 0.8; }
 .slot-x:hover { transform: scale(1.3); color: var(--rose); }
+.slot-edit:hover { color: var(--olive); }
 
 .empty-hint { color: var(--text-soft); font-size: 0.8rem; font-style: italic; margin: auto 0; text-align: center; }
 
