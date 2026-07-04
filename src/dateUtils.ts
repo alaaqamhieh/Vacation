@@ -1,0 +1,67 @@
+import { TRIP } from './config'
+
+/** Parse an ISO date (YYYY-MM-DD) as a local Date at midnight. */
+export function parseISO(iso: string): Date {
+  const [y, m, d] = iso.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+export function toISO(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+/** All trip days, inclusive of start and end. */
+export function tripDays(): string[] {
+  const days: string[] = []
+  const cursor = parseISO(TRIP.startDate)
+  let iso = toISO(cursor)
+  while (iso <= TRIP.endDate) {
+    days.push(iso)
+    cursor.setDate(cursor.getDate() + 1)
+    iso = toISO(cursor)
+  }
+  return days
+}
+
+export function isTripDay(iso: string): boolean {
+  return iso >= TRIP.startDate && iso <= TRIP.endDate
+}
+
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+]
+
+export function formatDay(iso: string): string {
+  const d = parseISO(iso)
+  return `${WEEKDAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`
+}
+
+export function formatShort(iso: string): string {
+  const d = parseISO(iso)
+  return `${MONTHS[d.getMonth()].slice(0, 3)} ${d.getDate()}`
+}
+
+export function weekdayShort(iso: string): string {
+  return WEEKDAYS[parseISO(iso).getDay()].slice(0, 3)
+}
+
+/** Whole days from today until the given ISO date (0 if past). */
+export function daysUntil(iso: string): number {
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const target = parseISO(iso)
+  const diff = Math.ceil((target.getTime() - today.getTime()) / 86_400_000)
+  return Math.max(0, diff)
+}
+
+/** 1-based day number of the trip for a given date. */
+export function tripDayNumber(iso: string): number {
+  const start = parseISO(TRIP.startDate)
+  const d = parseISO(iso)
+  return Math.round((d.getTime() - start.getTime()) / 86_400_000) + 1
+}
