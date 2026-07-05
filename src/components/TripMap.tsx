@@ -36,14 +36,34 @@ export default function TripMap({ activities, restaurants }: Props) {
 
   useEffect(() => {
     if (!mapEl.current || mapRef.current) return
-    const map = L.map(mapEl.current, { scrollWheelZoom: false })
+    // Initial view over Jordan so layers attach immediately; fitBounds refines it.
+    const map = L.map(mapEl.current, { scrollWheelZoom: false, center: [31.2, 35.8], zoom: 7 })
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 18,
     }).addTo(map)
 
-    const food = L.layerGroup().addTo(map)
-    const places = L.layerGroup().addTo(map)
+    mapRef.current = map
+    foodLayer.current = L.layerGroup().addTo(map)
+    placesLayer.current = L.layerGroup().addTo(map)
+    return () => {
+      map.remove()
+      mapRef.current = null
+      foodLayer.current = null
+      placesLayer.current = null
+      fittedOnce.current = false
+    }
+  }, [])
+
+  // (Re)populate markers whenever the lists change, so imported spots pin live.
+  const fittedOnce = useRef(false)
+  useEffect(() => {
+    const map = mapRef.current
+    const food = foodLayer.current
+    const places = placesLayer.current
+    if (!map || !food || !places) return
+    food.clearLayers()
+    places.clearLayers()
     const bounds: L.LatLngTuple[] = []
 
     for (const r of restaurants) {
@@ -61,17 +81,11 @@ export default function TripMap({ activities, restaurants }: Props) {
         .addTo(places)
     }
 
-    map.fitBounds(L.latLngBounds(bounds), { padding: [30, 30] })
-    mapRef.current = map
-    foodLayer.current = food
-    placesLayer.current = places
-    return () => {
-      map.remove()
-      mapRef.current = null
+    if (!fittedOnce.current && bounds.length > 0) {
+      map.fitBounds(L.latLngBounds(bounds), { padding: [30, 30] })
+      fittedOnce.current = true
     }
-    // Library data is static for the life of the page; build the map once.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [activities, restaurants])
 
   useEffect(() => {
     const map = mapRef.current
