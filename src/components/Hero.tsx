@@ -26,7 +26,7 @@ export default function Hero({ theme, onToggleTheme }: Props) {
         <Countdown target={TRIP.weddingDate} label="until the wedding" />
         <div>
           <span className="wedding-chip">
-            ✈️ {formatShort(TRIP.startDate)} – {formatShort(TRIP.endDate)} · hosted by {TRIP.travelers}
+            ✈️ Trip itinerary · {formatShort(TRIP.startDate)} – {formatShort(TRIP.endDate)}, 2026
           </span>
         </div>
       </div>

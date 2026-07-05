@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Modal from './Modal'
+import EmojiPicker from './EmojiPicker'
 import { tripDays, formatShort, weekdayShort } from '../dateUtils'
 import type { MealSlot, ScheduledItem } from '../types'
 
@@ -68,7 +69,7 @@ export default function CustomEventModal({ initial, displayTitle, onSave, onClos
           </div>
           <div className="field">
             <label>Emoji</label>
-            <input value={emoji} onChange={(e) => setEmoji(e.target.value)} maxLength={4} style={{ width: 80 }} />
+            <EmojiPicker value={emoji} onChange={setEmoji} />
           </div>
         </>
       )}

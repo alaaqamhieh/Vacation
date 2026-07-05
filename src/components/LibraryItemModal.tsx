@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Modal from './Modal'
+import EmojiPicker from './EmojiPicker'
 import { CATEGORY_META, REGION_META, type Activity, type Category, type PriceTier, type Region, type Restaurant } from '../types'
 
 interface Props {
@@ -48,7 +49,7 @@ export default function LibraryItemModal({ kind, onSaveActivity, onSaveRestauran
       </div>
       <div className="field">
         <label>Emoji</label>
-        <input value={emoji} onChange={(e) => setEmoji(e.target.value)} maxLength={4} style={{ width: 80 }} />
+        <EmojiPicker value={emoji} onChange={setEmoji} />
       </div>
       {kind === 'activity' ? (
         <>
