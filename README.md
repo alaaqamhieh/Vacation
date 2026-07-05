@@ -1,40 +1,44 @@
-# Amman 2026 — Alaa & Bissan ✈️🇯🇴
+# Adam & Leen Wedding — Amman 2026 💍🇯🇴
 
-An animated welcome site and trip planner for **Alaa & Bissan's vacation to Amman, Jordan** —
-**July 23 – August 4, 2026** — built around the trip's centerpiece: 💍 **Bissan's cousin's wedding on August 2**.
+The family site for **Adam & Leen's wedding in Amman, Jordan (August 2, 2026)** and the trip around it
+(**July 23 – August 4, 2026**), hosted by Alaa & Bissan. Live at
+**https://alaaqamhieh.github.io/Vacation/**
 
 ## What it does
 
-- **Countdown hero** — live days/hours/minutes/seconds to departure, plus a countdown chip to the wedding
-- **Two itinerary views** — a day-by-day timeline and a calendar grid, toggleable, backed by the same plan
-- **Drag & drop planning** — drag any restaurant or activity onto a day (or tap ➕ Plan on any card); drag items between days to reshuffle
-- **Pinned milestones** — the flights and the wedding ship pre-booked on the calendar with gold shimmer styling and a confirmation prompt before removal; add your own important dates too
-- **🍽️ The food list** — a curated guide to Amman's food scene (plus Petra/Jerash/Aqaba stops): shortlist favorites ❤️, mark them ✓ tried, filter by price / order-in friendly, and schedule them as lunch or dinner
-- **🏜️ Activity library** — ~35 curated things to do across all of Jordan, filterable by category and region, searchable
-- **📆 .ics export** — download the whole plan and import it into a phone calendar
-- **🧳 Packing checklist & 🧭 trip essentials** — currency, weather, phrases, plugs, tipping
-- **Dark/light theme**, fully responsive, animated throughout (and quiet under `prefers-reduced-motion`)
+- **Wedding countdown hero** — live countdown to August 2, with the trip dates below
+- **Two itinerary views** — a day-by-day timeline and a real Monday–Sunday week calendar; drag & drop
+  restaurants/activities onto days (breakfast, lunch, or dinner slots for food)
+- **✎ Editable events** — rename, move, or annotate anything; the flights and wedding ship pre-pinned
+- **🍽️ The food list** — 30 curated spots with **popularity stars**, **👨‍👩‍👧 family pick** badges, shortlist
+  hearts, tried-it tracking, price/order-in filters, and search
+- **🏜️ Things to do across Jordan** — filterable by category and region, with popularity ratings
+- **🗺️ Trip map** — every spot pinned on an interactive map, plus a 📍 Google Maps button on each card
+- **📆 Calendar subscription** — family phones subscribe once (Apple/Google) and the official itinerary
+  stays synced; personal copies downloadable as `.ics`
+- **🔗 Share plan** — anyone can edit their own copy and send it to the group as a link
+- **Packing checklist, trip essentials, dark mode, animations**
 
-## Privacy
+## Data & privacy
 
-No backend, no accounts, no analytics, no external API calls. The plan, shortlist, and checklist live in this
-browser's `localStorage` — nothing leaves the device.
+The plan, shortlist, and checklist live in each visitor's browser (`localStorage`) — no accounts, no
+analytics, no backend. The only external calls are OpenStreetMap tiles for the trip map and links out to
+Google Maps/Calendar. Trip facts (names, dates) live in `src/config.ts`; all curated places in `src/data.ts`.
 
 ## Develop
 
 ```bash
 npm install
 npm run dev      # local dev server
-npm run build    # type-check + production build to dist/
+npm run build    # regenerates public/itinerary.ics, type-checks, builds dist/
 npm run lint     # oxlint
 ```
 
-Node 18+ required. All trip facts (names, dates, the wedding) live in `src/config.ts`; the curated
-activities, restaurants, and pinned events live in `src/data.ts`.
+Node 18+ required.
 
 ## Deploy
 
-Pushes to the deploy branches trigger `.github/workflows/deploy.yml`, which builds the site and publishes
-`dist/` to **GitHub Pages**.
+Pushes to the deploy branches trigger `.github/workflows/deploy.yml` → GitHub Pages. The build also
+regenerates `public/itinerary.ics`, so calendar subscriptions pick up itinerary changes automatically.
 
-> **One-time setup:** in the repo's *Settings → Pages*, set the source to **GitHub Actions**.
+> **One-time setup (done):** repo *Settings → Pages* → source **GitHub Actions**.

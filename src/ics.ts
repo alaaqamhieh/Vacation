@@ -41,6 +41,9 @@ export function buildICS(items: ScheduledItem[], sources: IcsSources): string {
     'VERSION:2.0',
     `PRODID:-//${escapeText(TRIP.travelers)}//${escapeText(TRIP.title)}//EN`,
     'CALSCALE:GREGORIAN',
+    fold(`X-WR-CALNAME:${escapeText(`${TRIP.title} · Amman 2026`)}`),
+    'X-PUBLISHED-TTL:PT12H',
+    'REFRESH-INTERVAL;VALUE=DURATION:PT12H',
   ]
 
   for (const item of items) {
@@ -57,7 +60,8 @@ export function buildICS(items: ScheduledItem[], sources: IcsSources): string {
     } else if (item.kind === 'restaurant' && item.refId) {
       const r = sources.restaurants.find((x) => x.id === item.refId)
       if (r) {
-        title = `${item.meal === 'lunch' ? 'Lunch' : 'Dinner'} at ${r.name}`
+        const meal = item.meal === 'breakfast' ? 'Breakfast' : item.meal === 'lunch' ? 'Lunch' : 'Dinner'
+        title = `${meal} at ${r.name}`
         emoji = r.emoji
         description = description || `${r.cuisine} · ${r.neighborhood}. ${r.description}`
       }

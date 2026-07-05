@@ -30,6 +30,25 @@ export function isTripDay(iso: string): boolean {
   return iso >= TRIP.startDate && iso <= TRIP.endDate
 }
 
+/**
+ * Full Monday–Sunday weeks covering the trip: from the Monday on/before the
+ * start date through the Sunday on/after the end date.
+ */
+export function tripWeeks(): string[][] {
+  const cursor = parseISO(TRIP.startDate)
+  cursor.setDate(cursor.getDate() - ((cursor.getDay() + 6) % 7)) // back to Monday
+  const weeks: string[][] = []
+  do {
+    const week: string[] = []
+    for (let i = 0; i < 7; i++) {
+      week.push(toISO(cursor))
+      cursor.setDate(cursor.getDate() + 1)
+    }
+    weeks.push(week)
+  } while (weeks[weeks.length - 1][6] < TRIP.endDate)
+  return weeks
+}
+
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',

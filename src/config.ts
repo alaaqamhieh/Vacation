@@ -2,7 +2,8 @@
 export const TRIP = {
   travelers: 'Alaa & Bissan',
   destination: 'Amman, Jordan',
-  title: 'Amman 2026',
+  title: 'Adam & Leen Wedding',
+  couple: 'Adam & Leen',
   // Banner tagline — keep it themed around the destination.
   heroKicker: 'To the land of Petra & the Dead Sea',
   // ISO dates, inclusive. Jul 23 = depart US, Aug 4 = fly home.
@@ -17,3 +18,8 @@ export const OLD_WEDDING_LABEL = "Bissan's cousin's wedding"
 
 export const STORAGE_KEY = 'amman-2026-trip'
 export const STORAGE_VERSION = 1
+
+/** Where the site is published — used for the calendar subscription links. */
+export const SITE_URL = 'https://alaaqamhieh.github.io/Vacation/'
+export const ICS_URL = `${SITE_URL}itinerary.ics`
+export const WEBCAL_URL = ICS_URL.replace(/^https:/, 'webcal:')

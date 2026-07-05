@@ -15,6 +15,7 @@ export type Region =
   | 'aqaba'
 
 export type PriceTier = 1 | 2 | 3
+export type Popularity = 1 | 2 | 3 | 4 | 5
 
 export interface Activity {
   id: string
@@ -25,6 +26,12 @@ export interface Activity {
   description: string
   /** Suggested time commitment, e.g. "2–3 hrs", "Full day" */
   duration: string
+  /** How much of a must-do it is, 1–5 (customs default to 3) */
+  popularity?: Popularity
+  /** Recommended by the family */
+  familyPick?: boolean
+  /** Approximate [lat, lng] for the trip map */
+  coords?: [number, number]
   /** True for user-created activities (editable/deletable freely) */
   custom?: boolean
 }
@@ -41,10 +48,19 @@ export interface Restaurant {
   signature: string
   orderIn: boolean
   description: string
+  popularity?: Popularity
+  familyPick?: boolean
+  coords?: [number, number]
   custom?: boolean
 }
 
-export type MealSlot = 'lunch' | 'dinner'
+export type MealSlot = 'breakfast' | 'lunch' | 'dinner'
+
+export const MEAL_META: Record<MealSlot, { label: string; emoji: string; order: number }> = {
+  breakfast: { label: 'Breakfast', emoji: '🌅', order: 0 },
+  lunch: { label: 'Lunch', emoji: '☀️', order: 1 },
+  dinner: { label: 'Dinner', emoji: '🌙', order: 2 },
+}
 
 /** Something placed on a specific day of the trip. */
 export interface ScheduledItem {

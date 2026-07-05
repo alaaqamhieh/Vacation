@@ -1,6 +1,6 @@
 import Countdown from './Countdown'
 import { TRIP } from '../config'
-import { daysUntil, formatShort } from '../dateUtils'
+import { formatShort } from '../dateUtils'
 
 interface Props {
   theme: 'light' | 'dark' | 'auto'
@@ -8,7 +8,6 @@ interface Props {
 }
 
 export default function Hero({ theme, onToggleTheme }: Props) {
-  const weddingDays = daysUntil(TRIP.weddingDate)
   const themeIcon = theme === 'dark' ? '🌙' : theme === 'light' ? '☀️' : '🌗'
 
   return (
@@ -21,14 +20,13 @@ export default function Hero({ theme, onToggleTheme }: Props) {
       </div>
       <div className="container hero-inner hero-stagger">
         <p className="hero-kicker">{TRIP.heroKicker}</p>
-        <h1 className="hero-title">{TRIP.destination.split(',')[0]} 2026</h1>
-        <p className="hero-names">{TRIP.travelers} · {TRIP.destination}</p>
-        <p className="hero-dates">{formatShort(TRIP.startDate)} — {formatShort(TRIP.endDate)}, 2026</p>
-        <Countdown />
+        <h1 className="hero-title">{TRIP.couple} 💍</h1>
+        <p className="hero-names">Wedding — {TRIP.destination} · {formatShort(TRIP.weddingDate)}, 2026</p>
+        <p className="hero-dates">Trip itinerary: {formatShort(TRIP.startDate)} — {formatShort(TRIP.endDate)}, 2026</p>
+        <Countdown target={TRIP.weddingDate} label="until the wedding" />
         <div>
           <span className="wedding-chip">
-            💍 {TRIP.weddingLabel} · {formatShort(TRIP.weddingDate)}
-            {weddingDays > 0 ? ` · ${weddingDays} days to go` : ' · Today!'}
+            ✈️ {formatShort(TRIP.startDate)} – {formatShort(TRIP.endDate)} · hosted by {TRIP.travelers}
           </span>
         </div>
       </div>

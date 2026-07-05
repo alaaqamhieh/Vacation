@@ -86,6 +86,7 @@ export default function CustomEventModal({ initial, displayTitle, onSave, onClos
         <div className="field">
           <label>Meal</label>
           <div className="view-toggle" style={{ alignSelf: 'flex-start' }}>
+            <button className={meal === 'breakfast' ? 'on' : ''} onClick={() => setMeal('breakfast')}>🌅 Breakfast</button>
             <button className={meal === 'lunch' ? 'on' : ''} onClick={() => setMeal('lunch')}>☀️ Lunch</button>
             <button className={meal === 'dinner' ? 'on' : ''} onClick={() => setMeal('dinner')}>🌙 Dinner</button>
           </div>

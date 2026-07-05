@@ -2,6 +2,8 @@ import { useMemo, useState, type DragEvent, type MouseEvent } from 'react'
 import type { Restaurant } from '../types'
 import { REGION_META } from '../types'
 import { useReveal } from '../useReveal'
+import { mapsUrl } from '../mapUtils'
+import Stars from './Stars'
 import type { AddTarget } from './AddToDayModal'
 
 interface Props {
@@ -16,10 +18,12 @@ interface Props {
   onDeleteCustom: (id: string) => void
 }
 
-type Filter = 'all' | 'shortlist' | 'orderin' | 'cheap' | 'fancy'
+type Filter = 'all' | 'top' | 'family' | 'shortlist' | 'orderin' | 'cheap' | 'fancy'
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: 'all', label: 'All' },
+  { id: 'top', label: '⭐ Top rated' },
+  { id: 'family', label: '👨‍👩‍👧 Family picks' },
   { id: 'shortlist', label: '❤️ Our shortlist' },
   { id: 'orderin', label: '🛵 Order-in friendly' },
   { id: 'cheap', label: 'JD — cheap eats' },
@@ -34,14 +38,18 @@ export default function RestaurantGuide(props: Props) {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return restaurants.filter((r) => {
-      if (filter === 'shortlist' && !shortlist.includes(r.id)) return false
-      if (filter === 'orderin' && !r.orderIn) return false
-      if (filter === 'cheap' && r.price !== 1) return false
-      if (filter === 'fancy' && r.price !== 3) return false
-      if (!q) return true
-      return [r.name, r.cuisine, r.neighborhood, r.signature, r.description].join(' ').toLowerCase().includes(q)
-    })
+    return restaurants
+      .filter((r) => {
+        if (filter === 'top' && (r.popularity ?? 3) < 4) return false
+        if (filter === 'family' && !r.familyPick) return false
+        if (filter === 'shortlist' && !shortlist.includes(r.id)) return false
+        if (filter === 'orderin' && !r.orderIn) return false
+        if (filter === 'cheap' && r.price !== 1) return false
+        if (filter === 'fancy' && r.price !== 3) return false
+        if (!q) return true
+        return [r.name, r.cuisine, r.neighborhood, r.signature, r.description].join(' ').toLowerCase().includes(q)
+      })
+      .sort((a, b) => (b.popularity ?? 3) - (a.popularity ?? 3) || a.name.localeCompare(b.name))
   }, [restaurants, filter, query, shortlist])
 
   const dragStart = (e: DragEvent, r: Restaurant) => {
@@ -105,12 +113,14 @@ export default function RestaurantGuide(props: Props) {
                   <div className="card-meta">
                     {r.cuisine} · {r.neighborhood} · <span className="price-dots">{'JD '.repeat(r.price).trim()}</span>
                   </div>
+                  <Stars value={r.popularity} />
                 </div>
               </div>
               <p className="card-desc">
                 <strong>{r.signature}.</strong> {r.description}
               </p>
               <div className="card-actions">
+                {r.familyPick && <span className="tag family-tag">👨‍👩‍👧 Family pick</span>}
                 <span className="tag">{r.vibe}</span>
                 {r.orderIn && <span className="tag" style={{ ['--card-accent' as string]: 'var(--cat-nature)' }}>🛵 delivers</span>}
                 {r.region !== 'amman' && (
@@ -134,6 +144,7 @@ export default function RestaurantGuide(props: Props) {
                 <button className="mini-btn" onClick={(e) => visitedClick(e, r.id)}>
                   {visited.includes(r.id) ? '↩︎ Untried' : '✓ Tried it'}
                 </button>
+                <a className="mini-btn" href={mapsUrl(r.name, r.neighborhood)} target="_blank" rel="noreferrer">📍 Map</a>
                 {scheduledIds.has(r.id) && <span className="tag" style={{ ['--card-accent' as string]: 'var(--cat-milestone)' }}>🗓️ planned</span>}
                 {r.custom && (
                   <button className="mini-btn" onClick={() => props.onDeleteCustom(r.id)} aria-label={`Delete ${r.name}`}>🗑</button>

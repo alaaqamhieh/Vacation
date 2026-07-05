@@ -1,24 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
 import { parseISO } from '../dateUtils'
-import { TRIP } from '../config'
 
 interface Parts {
   days: number
   hours: number
   mins: number
-  secs: number
   done: boolean
 }
 
 function partsUntil(target: Date): Parts {
   const ms = target.getTime() - Date.now()
-  if (ms <= 0) return { days: 0, hours: 0, mins: 0, secs: 0, done: true }
+  if (ms <= 0) return { days: 0, hours: 0, mins: 0, done: true }
   const secs = Math.floor(ms / 1000)
   return {
     days: Math.floor(secs / 86400),
     hours: Math.floor((secs % 86400) / 3600),
     mins: Math.floor((secs % 3600) / 60),
-    secs: secs % 60,
     done: false,
   }
 }
@@ -42,25 +39,41 @@ function Cell({ value, label }: { value: number; label: string }) {
   )
 }
 
-export default function Countdown() {
-  const target = parseISO(TRIP.startDate)
-  const [parts, setParts] = useState(() => partsUntil(target))
+interface Props {
+  /** ISO date to count down to */
+  target: string
+  /** Shown under the countdown, e.g. "until the wedding" */
+  label?: string
+}
+
+export default function Countdown({ target, label }: Props) {
+  const [parts, setParts] = useState(() => partsUntil(parseISO(target)))
 
   useEffect(() => {
-    const id = setInterval(() => setParts(partsUntil(parseISO(TRIP.startDate))), 1000)
+    // Minutes are the finest unit shown; refresh a bit faster to stay accurate.
+    const id = setInterval(() => setParts(partsUntil(parseISO(target))), 15_000)
     return () => clearInterval(id)
-  }, [])
+  }, [target])
 
   if (parts.done) {
-    return <div className="countdown"><div className="count-cell"><span className="count-num">🎉</span><span className="count-label">We're here — yalla!</span></div></div>
+    return (
+      <div className="countdown">
+        <div className="count-cell">
+          <span className="count-num">🎉</span>
+          <span className="count-label">It's here — mabrouk!</span>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="countdown" role="timer" aria-label="Countdown to departure">
-      <Cell value={parts.days} label="days" />
-      <Cell value={parts.hours} label="hours" />
-      <Cell value={parts.mins} label="minutes" />
-      <Cell value={parts.secs} label="seconds" />
+    <div>
+      <div className="countdown" role="timer" aria-label={`Countdown ${label ?? ''}`}>
+        <Cell value={parts.days} label="days" />
+        <Cell value={parts.hours} label="hours" />
+        <Cell value={parts.mins} label="minutes" />
+      </div>
+      {label && <p className="count-caption">{label}</p>}
     </div>
   )
 }

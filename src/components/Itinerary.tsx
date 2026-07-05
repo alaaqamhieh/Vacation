@@ -1,6 +1,6 @@
 import { useState, type DragEvent } from 'react'
-import type { Activity, Restaurant, ScheduledItem } from '../types'
-import { tripDays, formatShort, weekdayShort, tripDayNumber } from '../dateUtils'
+import type { Activity, MealSlot, Restaurant, ScheduledItem } from '../types'
+import { tripDays, tripWeeks, isTripDay, formatShort, weekdayShort, tripDayNumber } from '../dateUtils'
 import { TRIP } from '../config'
 import { useReveal } from '../useReveal'
 
@@ -15,7 +15,8 @@ interface Props {
   onEdit: (item: ScheduledItem) => void
   onRemove: (item: ScheduledItem) => void
   onToggleMeal: (id: string) => void
-  onExport: () => void
+  onOpenCalendar: () => void
+  onSharePlan: () => void
   onAddEvent: () => void
 }
 
@@ -23,7 +24,7 @@ interface Resolved {
   title: string
   emoji: string
   accent: string
-  meal?: 'lunch' | 'dinner'
+  meal?: MealSlot
 }
 
 function resolve(item: ScheduledItem, activities: Activity[], restaurants: Restaurant[]): Resolved {
@@ -57,10 +58,14 @@ export default function Itinerary(props: Props) {
   const ref = useReveal<HTMLElement>()
 
   const days = tripDays()
+  const mealOrder = (m?: string) => (m === 'breakfast' ? 0 : m === 'lunch' ? 1 : m === 'dinner' ? 2 : 3)
   const byDay = (day: string) =>
     scheduled
       .filter((s) => s.date === day)
-      .sort((a, b) => Number(b.milestone ?? false) - Number(a.milestone ?? false) || (a.meal === 'lunch' ? -1 : 0))
+      .sort(
+        (a, b) =>
+          Number(b.milestone ?? false) - Number(a.milestone ?? false) || mealOrder(a.meal) - mealOrder(b.meal),
+      )
 
   const handleDrop = (e: DragEvent, day: string) => {
     e.preventDefault()
@@ -90,7 +95,7 @@ export default function Itinerary(props: Props) {
             className="slot-meal"
             style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}
             onClick={() => props.onToggleMeal(item.id)}
-            title="Switch lunch/dinner"
+            title="Switch breakfast/lunch/dinner"
           >
             {r.meal}
           </button>
@@ -137,23 +142,42 @@ export default function Itinerary(props: Props) {
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <button className="btn ghost" onClick={props.onAddEvent}>➕ Add event</button>
-            <button className="btn" onClick={props.onExport}>📆 Export .ics</button>
+            <button className="btn ghost" onClick={props.onSharePlan}>🔗 Share plan</button>
+            <button className="btn" onClick={props.onOpenCalendar}>📆 Calendar</button>
           </div>
         </div>
 
         {view === 'calendar' ? (
-          <div className="cal-grid">
-            {days.map((day) => (
-              <div key={day} className={`day-cell${dragOver === day ? ' drag-over' : ''}`} {...dayDropProps(day)}>
-                <div className="day-head">
-                  <span className="day-num">Day {tripDayNumber(day)}</span>
-                  <span className="day-date">{formatShort(day)}</span>
-                  <span className="day-wk">{weekdayShort(day)}</span>
-                </div>
-                {byDay(day).map(slot)}
-                {byDay(day).length === 0 && <div className="empty-hint">Drop something fun here</div>}
+          <div className="cal-wrap">
+            <div className="cal-inner">
+              <div className="cal-weekhead">
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((wd) => (
+                  <div key={wd} className="cal-wd">{wd}</div>
+                ))}
               </div>
-            ))}
+              {tripWeeks().map((week) => (
+                <div key={week[0]} className="cal-week">
+                  {week.map((day) =>
+                    isTripDay(day) ? (
+                      <div key={day} className={`day-cell${dragOver === day ? ' drag-over' : ''}`} {...dayDropProps(day)}>
+                        <div className="day-head">
+                          <span className="day-num">Day {tripDayNumber(day)}</span>
+                          <span className="day-date">{formatShort(day)}</span>
+                        </div>
+                        {byDay(day).map(slot)}
+                        {byDay(day).length === 0 && <div className="empty-hint">Drop something fun here</div>}
+                      </div>
+                    ) : (
+                      <div key={day} className="day-cell off" aria-hidden="true">
+                        <div className="day-head">
+                          <span className="day-date">{formatShort(day)}</span>
+                        </div>
+                      </div>
+                    ),
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="timeline">

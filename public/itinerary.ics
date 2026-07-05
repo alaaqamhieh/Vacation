@@ -1,0 +1,99 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Alaa & Bissan//Adam & Leen Wedding//EN
+CALSCALE:GREGORIAN
+X-WR-CALNAME:Adam & Leen Wedding · Amman 2026
+X-PUBLISHED-TTL:PT12H
+REFRESH-INTERVAL;VALUE=DURATION:PT12H
+BEGIN:VEVENT
+UID:ms-depart@amman2026
+DTSTAMP:20260705T023810Z
+DTSTART;VALUE=DATE:20260723
+DTEND;VALUE=DATE:20260724
+SUMMARY:✈️ Fly out — US ✈ Amman
+DESCRIPTION:Departure day. Passports\, chargers\, gifts for the family!
+END:VEVENT
+BEGIN:VEVENT
+UID:ms-arrive@amman2026
+DTSTAMP:20260705T023810Z
+DTSTART;VALUE=DATE:20260724
+DTEND;VALUE=DATE:20260725
+SUMMARY:🛬 Land in Amman 🇯🇴
+DESCRIPTION:Ahlan wa sahlan! Settle in\, family hellos\, and a first knaf
+ eh.
+END:VEVENT
+BEGIN:VEVENT
+UID:ms-wedding@amman2026
+DTSTAMP:20260705T023810Z
+DTSTART;VALUE=DATE:20260802
+DTEND;VALUE=DATE:20260803
+SUMMARY:💍 Adam & Leen's wedding
+DESCRIPTION:The big day — the whole reason for the trip! Outfits ready\, 
+ cameras charged.
+END:VEVENT
+BEGIN:VEVENT
+UID:ms-return@amman2026
+DTSTAMP:20260705T023810Z
+DTSTART;VALUE=DATE:20260804
+DTEND;VALUE=DATE:20260805
+SUMMARY:🛫 Fly home — Amman ✈ US
+DESCRIPTION:Ma’a salama\, Amman. Save room in the suitcase for sweets.
+END:VEVENT
+BEGIN:VEVENT
+UID:seed-hashem@amman2026
+DTSTAMP:20260705T023810Z
+DTSTART;VALUE=DATE:20260724
+DTEND;VALUE=DATE:20260725
+SUMMARY:🧆 Dinner at Hashem
+DESCRIPTION:Falafel & hummus · Downtown (Al-Balad). Open since 1952 and b
+ eloved by everyone from taxi drivers to royalty. Go hungry\, pay almost 
+ nothing.
+END:VEVENT
+BEGIN:VEVENT
+UID:seed-citadel@amman2026
+DTSTAMP:20260705T023810Z
+DTSTART;VALUE=DATE:20260725
+DTEND;VALUE=DATE:20260726
+SUMMARY:🏛️ Amman Citadel (Jabal al-Qal‘a)
+DESCRIPTION:Temple of Hercules\, the Umayyad Palace\, and the best panora
+ ma of downtown Amman. Go late afternoon for golden light.
+END:VEVENT
+BEGIN:VEVENT
+UID:seed-jerash@amman2026
+DTSTAMP:20260705T023810Z
+DTSTART;VALUE=DATE:20260726
+DTEND;VALUE=DATE:20260727
+SUMMARY:🏺 Jerash Roman ruins
+DESCRIPTION:One of the best-preserved Roman cities anywhere — colonnaded 
+ streets\, temples\, its own grand theater\, and the huge Oval Plaza. ~1 
+ hr from Amman.
+END:VEVENT
+BEGIN:VEVENT
+UID:seed-petra@amman2026
+DTSTAMP:20260705T023810Z
+DTSTART;VALUE=DATE:20260728
+DTEND;VALUE=DATE:20260729
+SUMMARY:🏜️ Petra — the Treasury & beyond
+DESCRIPTION:Walk the Siq to the Treasury\, then the Street of Facades and
+  the Royal Tombs. Start early — a long day\, and Wadi Rum can follow the
+  same evening. ~3 hrs from Amman.
+END:VEVENT
+BEGIN:VEVENT
+UID:seed-dead-sea@amman2026
+DTSTAMP:20260705T023810Z
+DTSTART;VALUE=DATE:20260730
+DTEND;VALUE=DATE:20260731
+SUMMARY:🌊 Float in the Dead Sea
+DESCRIPTION:The lowest point on Earth. Float\, mud up\, rinse\, repeat — 
+ then catch the sunset over the water. ~1 hr from Amman.
+END:VEVENT
+BEGIN:VEVENT
+UID:seed-family@amman2026
+DTSTAMP:20260705T023810Z
+DTSTART;VALUE=DATE:20260801
+DTEND;VALUE=DATE:20260802
+SUMMARY:👨‍👩‍👧 Family visits & wedding prep
+DESCRIPTION:Time with the family — visits\, fittings\, and everything lea
+ ding up to the big day.
+END:VEVENT
+END:VCALENDAR
