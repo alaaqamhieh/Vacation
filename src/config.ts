@@ -23,3 +23,27 @@ export const STORAGE_VERSION = 1
 export const SITE_URL = 'https://alaaqamhieh.github.io/Vacation/'
 export const ICS_URL = `${SITE_URL}itinerary.ics`
 export const WEBCAL_URL = ICS_URL.replace(/^https:/, 'webcal:')
+
+/**
+ * Google Places API key. Safe to ship publicly: it is restricted in the Google
+ * Cloud console to the alaaqamhieh.github.io referrer and the Places API only,
+ * so it works from this site and nowhere else.
+ */
+export const GOOGLE_PLACES_KEY = 'AIzaSyAR_iA_UYzwSP2O_O5x9hEzX8zpPY-kjlY'
+
+/**
+ * Firebase Realtime Database URL for the shared family plan (e.g.
+ * "https://xxx.firebaseio.com/plan"). Empty = sharing is OFF and the app runs
+ * fully local. Set this to turn on live family sync for everyone.
+ */
+export const SHARED_DB_URL = ''
+
+/** Effective shared-DB URL — a window/localStorage override wins if present. */
+export function getSharedDbUrl(): string {
+  try {
+    const win = (window as unknown as { __DB_URL__?: string }).__DB_URL__
+    return win ?? localStorage.getItem('amman-2026-dburl') ?? SHARED_DB_URL
+  } catch {
+    return SHARED_DB_URL
+  }
+}

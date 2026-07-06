@@ -216,7 +216,7 @@ input, textarea, select { font: inherit; }
 
 /* ------------------------------------------------------------- Sections */
 
-section { padding: 64px 0 26px; }
+section { padding: 64px 0 26px; scroll-margin-top: 64px; }
 
 .section-head { margin-bottom: 26px; }
 
@@ -602,13 +602,19 @@ section { padding: 64px 0 26px; }
   background: none;
   color: var(--text-soft);
   font-size: 0.95rem;
-  padding: 0 2px;
-  opacity: 0;
-  transition: opacity 0.15s, transform 0.15s;
+  padding: 2px 4px;
+  /* Visible by default so they work on touch; brighten on hover/focus. */
+  opacity: 0.55;
+  transition: opacity 0.15s, transform 0.15s, color 0.15s;
 }
-.slot:hover .slot-x { opacity: 0.8; }
+.slot:hover .slot-x, .slot-x:focus-visible { opacity: 1; }
 .slot-x:hover { transform: scale(1.3); color: var(--rose); }
 .slot-edit:hover { color: var(--olive); }
+
+/* Roomier tap targets on touch screens (no hover to reveal). */
+@media (hover: none) {
+  .slot-x { opacity: 0.7; font-size: 1.05rem; padding: 4px 6px; }
+}
 
 .empty-hint { color: var(--text-soft); font-size: 0.8rem; font-style: italic; margin: auto 0; text-align: center; }
 
@@ -687,20 +693,6 @@ section { padding: 64px 0 26px; }
   color: var(--text);
 }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-
-.gear-link { border: none; background: none; cursor: pointer; font-size: 0.9rem; padding: 0 2px; opacity: 0.7; }
-.gear-link:hover { opacity: 1; }
-
-.key-box {
-  margin-top: 8px;
-  padding: 10px;
-  border: 1px dashed var(--line);
-  border-radius: var(--radius-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.key-box label { font-size: 0.75rem; }
 
 .search-hint { margin: 8px 0 0; font-size: 0.82rem; color: var(--text-soft); }
 .search-hint.error { color: var(--rose); }
@@ -839,6 +831,93 @@ section { padding: 64px 0 26px; }
 @keyframes confetti-fall {
   0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
   100% { transform: translate(var(--dx, 0), var(--dy, 220px)) rotate(var(--rot, 540deg)); opacity: 0; }
+}
+
+/* ------------------------------------------------------- Sticky nav bar */
+
+.stickynav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  background: color-mix(in srgb, var(--bg-raised) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  transform: translateY(-100%);
+  transition: transform 0.3s var(--ease-spring);
+}
+.stickynav.shown { transform: translateY(0); }
+
+.stickynav-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.stickynav-brand { font-weight: 800; color: var(--text); text-decoration: none; white-space: nowrap; }
+.stickynav-links {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.stickynav-links::-webkit-scrollbar { display: none; }
+.stickynav-links a {
+  color: var(--text-soft);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.86rem;
+  padding: 6px 11px;
+  border-radius: 999px;
+  white-space: nowrap;
+  transition: background-color 0.2s, color 0.2s;
+}
+.stickynav-links a:hover { background: var(--bg-sunken); color: var(--accent); }
+.stickynav-right { display: flex; align-items: center; gap: 10px; }
+
+.sync-chip {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--olive);
+  background: color-mix(in srgb, var(--olive) 14%, transparent);
+  padding: 5px 11px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+[data-theme='dark'] .sync-chip { color: var(--olive-soft); }
+
+@media (max-width: 620px) {
+  .stickynav-brand { display: none; }
+  .stickynav-links { margin-left: 0; }
+}
+
+/* ---------------------------------------------------------------- Toast */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  z-index: 90;
+  background: var(--navy);
+  color: #fdf6ec;
+  font-weight: 600;
+  padding: 12px 22px;
+  border-radius: 999px;
+  box-shadow: var(--shadow-lift);
+  animation: toast-in 0.35s var(--ease-spring);
+  max-width: calc(100vw - 40px);
+  text-align: center;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translate(-50%, 16px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
 }
 
 /* --------------------------------------------------------------- Footer */

@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Hero from './components/Hero'
+import StickyNav from './components/StickyNav'
 import Itinerary, { type DragPayload } from './components/Itinerary'
 import RestaurantGuide from './components/RestaurantGuide'
 import ActivityLibrary from './components/ActivityLibrary'
@@ -14,6 +15,7 @@ import { ACTIVITIES, RESTAURANTS } from './data'
 import { loadState, saveState } from './storage'
 import { downloadICS } from './ics'
 import { encodePlan, decodePlan, planFromLocation } from './sharePlan'
+import { isSharingOn, fetchShared, pushShared, deviceId } from './sync'
 import { burstConfetti, burstFromElement } from './confetti'
 import type { Activity, MealSlot, Restaurant, ScheduledItem, TripState } from './types'
 import { TRIP } from './config'
@@ -30,8 +32,81 @@ export default function App() {
   const [state, setState] = useState<TripState>(loadState)
   const [modal, setModal] = useState<ModalState>({ type: 'none' })
   const [lastAddedId, setLastAddedId] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
 
   useEffect(() => saveState(state), [state])
+
+  const showToast = (msg: string) => {
+    setToast(msg)
+    setTimeout(() => setToast((t) => (t === msg ? null : t)), 2800)
+  }
+
+  // --- Shared family sync (dormant unless SHARED_DB_URL is configured) ---
+  const sharing = isSharingOn()
+  const [synced, setSynced] = useState(false)
+  // Version (updatedAt) of the last snapshot we pushed or adopted.
+  const syncVersion = useRef(0)
+  // The exact state object we last adopted from remote, so we don't echo it back.
+  const adoptedState = useRef<TripState | null>(null)
+
+  // On load: adopt the shared plan if it exists, else seed it with ours.
+  useEffect(() => {
+    if (!sharing) return
+    let cancelled = false
+    fetchShared().then((remote) => {
+      if (cancelled) return
+      if (remote) {
+        const { _meta, ...rest } = remote
+        syncVersion.current = _meta.updatedAt
+        adoptedState.current = rest
+        setState(rest)
+        setSynced(true)
+      } else {
+        pushShared(state).then((ts) => {
+          if (ts) {
+            syncVersion.current = ts
+            setSynced(true)
+          }
+        })
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+    // Run once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Push local edits (debounced). Skip the object we just adopted from remote.
+  useEffect(() => {
+    if (!sharing || state === adoptedState.current) return
+    const t = setTimeout(() => {
+      pushShared(state).then((ts) => {
+        if (ts) {
+          syncVersion.current = ts
+          setSynced(true)
+        }
+      })
+    }, 1200)
+    return () => clearTimeout(t)
+  }, [state, sharing])
+
+  // Poll for other people's edits.
+  useEffect(() => {
+    if (!sharing) return
+    const id = setInterval(() => {
+      fetchShared().then((remote) => {
+        if (!remote) return
+        if (remote._meta.updatedAt > syncVersion.current && remote._meta.deviceId !== deviceId()) {
+          const { _meta, ...rest } = remote
+          syncVersion.current = _meta.updatedAt
+          adoptedState.current = rest
+          setState(rest)
+        }
+      })
+    }, 10000)
+    return () => clearInterval(id)
+  }, [sharing])
 
   // Load a plan shared via #plan=... link (from the "Share plan" button).
   useEffect(() => {
@@ -64,7 +139,7 @@ export default function App() {
     }
     try {
       await navigator.clipboard.writeText(url)
-      window.alert('Plan link copied — paste it in the family chat! Anyone who opens it gets this version of the plan.')
+      showToast('🔗 Link copied — paste it in the family chat!')
     } catch {
       window.prompt('Copy this link and share it:', url)
     }
@@ -161,6 +236,8 @@ export default function App() {
 
   return (
     <>
+      <span id="top" />
+      <StickyNav theme={state.theme} onToggleTheme={cycleTheme} sharing={sharing} synced={synced} />
       <Hero theme={state.theme} onToggleTheme={cycleTheme} />
 
       <Itinerary
@@ -215,9 +292,10 @@ export default function App() {
       <Packing packed={state.packed} onToggle={handleTogglePacked} />
 
       <footer>
-        Made with ❤️ for {TRIP.travelers} · {TRIP.destination} · Everything lives in this browser — no accounts, no
-        tracking, just us.
+        Made with ❤️ for {TRIP.couple}'s wedding · {TRIP.destination} · Hosted by {TRIP.travelers}
       </footer>
+
+      {toast && <div className="toast" role="status">{toast}</div>}
 
       {modal.type === 'addToDay' && (
         <AddToDayModal

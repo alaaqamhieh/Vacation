@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Modal from './Modal'
 import EmojiPicker from './EmojiPicker'
-import { searchPlaces, getGoogleKey, setGoogleKey, nearestRegion, type PlaceResult } from '../placeSearch'
+import { searchPlaces, guessCategory, nearestRegion, type PlaceResult } from '../placeSearch'
 import { CATEGORY_META, REGION_META, type Activity, type Category, type PriceTier, type Region, type Restaurant } from '../types'
 
 interface Props {
@@ -9,15 +9,6 @@ interface Props {
   onSaveActivity: (a: Activity) => void
   onSaveRestaurant: (r: Restaurant) => void
   onClose: () => void
-}
-
-/** Rough OSM kind → activity category mapping for imports. */
-function guessCategory(kind: string): Category {
-  const k = kind.toLowerCase()
-  if (/(attraction|museum|monument|archaeological|castle|ruins|historic|artwork|place of worship)/.test(k)) return 'history'
-  if (/(peak|beach|nature|park|water|viewpoint|cave|reserve)/.test(k)) return 'nature'
-  if (/(mall|market|marketplace|shop|souk)/.test(k)) return 'market'
-  return 'relax'
 }
 
 /** Add your own activity or restaurant to the library, by search or by hand. */
@@ -39,8 +30,6 @@ export default function LibraryItemModal({ kind, onSaveActivity, onSaveRestauran
   const [results, setResults] = useState<PlaceResult[] | null>(null)
   const [searching, setSearching] = useState(false)
   const [searchError, setSearchError] = useState('')
-  const [showKey, setShowKey] = useState(false)
-  const [gkey, setGkey] = useState(getGoogleKey)
 
   const runSearch = async () => {
     if (!query.trim() || searching) return
@@ -61,9 +50,10 @@ export default function LibraryItemModal({ kind, onSaveActivity, onSaveRestauran
     setNeighborhood(p.neighborhood)
     setRegion(nearestRegion(p.coords))
     setCoords(p.coords)
+    setEmoji(p.emoji)
     if (p.cuisine) setCuisine(p.cuisine)
     if (p.price) setPrice(p.price)
-    if (kind === 'activity') setCategory(guessCategory(p.kind))
+    if (kind === 'activity') setCategory(guessCategory(p.kind.toLowerCase().split(' ')))
     setResults(null)
     setQuery('')
   }
@@ -90,10 +80,7 @@ export default function LibraryItemModal({ kind, onSaveActivity, onSaveRestauran
       <h3>{kind === 'restaurant' ? '🍽️ Add a restaurant' : '✨ Add an activity'}</h3>
 
       <div className="field">
-        <label>
-          🔎 Find it online{' '}
-          <button type="button" className="gear-link" onClick={() => setShowKey((v) => !v)} title="Search settings">⚙️</button>
-        </label>
+        <label>🔎 Find it on Google</label>
         <div style={{ display: 'flex', gap: 8 }}>
           <input
             value={query}
@@ -106,19 +93,6 @@ export default function LibraryItemModal({ kind, onSaveActivity, onSaveRestauran
             {searching ? '…' : 'Search'}
           </button>
         </div>
-        {showKey && (
-          <div className="key-box">
-            <label>Google Places API key (optional — upgrades search results on this device only)</label>
-            <input
-              value={gkey}
-              onChange={(e) => {
-                setGkey(e.target.value)
-                setGoogleKey(e.target.value)
-              }}
-              placeholder="Paste key, or leave empty to use OpenStreetMap"
-            />
-          </div>
-        )}
         {searchError && <p className="search-hint error">{searchError}</p>}
         {results && results.length === 0 && (
           <p className="search-hint">No matches found — try adding “Amman”, or fill the form in below.</p>
@@ -128,14 +102,14 @@ export default function LibraryItemModal({ kind, onSaveActivity, onSaveRestauran
             {results.map((p, i) => (
               <div key={i} className="place-row">
                 <button type="button" className="place-pick" onClick={() => applyResult(p)}>
-                  <span className="place-name">{p.name}</span>
+                  <span className="place-name">{p.emoji} {p.name}</span>
                   <span className="place-meta">
                     {p.kind}
                     {p.cuisine ? ` · ${p.cuisine}` : ''} · {p.neighborhood}
+                    {p.price ? ` · ${'JD'.repeat(p.price)}` : ''}
                   </span>
                 </button>
-                <span className="tag">{p.source === 'google' ? 'Google' : 'OSM'}</span>
-                <a className="mini-btn" href={p.googleUrl} target="_blank" rel="noreferrer">↗</a>
+                <a className="mini-btn" href={p.googleUrl} target="_blank" rel="noreferrer" title="Open in Google Maps">↗</a>
               </div>
             ))}
           </div>
