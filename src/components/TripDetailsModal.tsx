@@ -7,21 +7,28 @@ import type { ScheduledItem } from '../types'
 interface Props {
   /** All scheduled items, so we can prefill from existing flight/stay events. */
   scheduled: ScheduledItem[]
-  /** Open with this traveler group expanded/highlighted (e.g. from a slot's edit button). */
+  /** Open with this group expanded/highlighted (e.g. from a slot's edit button). */
   focusGroup?: string
   /** Upsert these items by id and delete the given ids. */
   onSave: (upserts: ScheduledItem[], remove: string[]) => void
   onClose: () => void
 }
 
-interface Traveler {
+/** A flight entry: who is travelling + their arrive/depart legs. */
+interface Flight {
   groupId: string
   name: string
   arriveDate: string
   arriveTime: string
   departDate: string
   departTime: string
-  stayName: string
+}
+
+/** A stay entry: a place, who it's for (optional), and check-in/out. Independent of flights. */
+interface Stay {
+  groupId: string
+  place: string
+  who: string
   checkinDate: string
   checkinTime: string
   checkoutDate: string
@@ -30,56 +37,83 @@ interface Traveler {
 
 const DAYS = tripDays()
 const LEGACY_IDS = ['ms-arrive', 'ms-return', 'ms-depart', 'stay-checkin', 'stay-checkout']
+const rid = (p: string) => `${p}${Date.now()}${Math.floor(Math.random() * 1000)}`
 
-function blankTraveler(name: string): Traveler {
+function blankFlight(name: string): Flight {
   return {
-    groupId: `t${Date.now()}${Math.floor(Math.random() * 1000)}`,
+    groupId: rid('f'),
     name,
-    arriveDate: '2026-07-24',
+    arriveDate: TRIP.departDate,
     arriveTime: '',
     departDate: TRIP.returnDate,
     departTime: '',
-    stayName: '',
-    checkinDate: '2026-07-24',
+  }
+}
+
+function blankStay(who: string): Stay {
+  return {
+    groupId: rid('s'),
+    place: '',
+    who,
+    checkinDate: TRIP.departDate,
     checkinTime: '',
     checkoutDate: TRIP.returnDate,
     checkoutTime: '',
   }
 }
 
-/** Build the traveler list from existing scheduled items (new-style, else legacy flights). */
-function readTravelers(scheduled: ScheduledItem[]): Traveler[] {
-  const byGroup = new Map<string, Traveler>()
+/** Build the flight list from existing scheduled items (new-style, else legacy flights). */
+function readFlights(scheduled: ScheduledItem[]): Flight[] {
+  const byGroup = new Map<string, Flight>()
   const ensure = (gid: string, name: string) => {
-    if (!byGroup.has(gid)) byGroup.set(gid, { ...blankTraveler(name), groupId: gid, name })
+    if (!byGroup.has(gid)) byGroup.set(gid, { ...blankFlight(name), groupId: gid, name })
     return byGroup.get(gid)!
   }
   for (const it of scheduled) {
-    if (!it.logistics || !it.groupId) continue
-    const t = ensure(it.groupId, it.party ?? TRIP.travelers)
-    if (it.logistics === 'arrive') { t.arriveDate = it.date; t.arriveTime = it.time ?? '' }
-    if (it.logistics === 'depart') { t.departDate = it.date; t.departTime = it.time ?? '' }
-    if (it.logistics === 'checkin') { t.checkinDate = it.date; t.checkinTime = it.time ?? ''; t.stayName = it.note ?? t.stayName }
-    if (it.logistics === 'checkout') { t.checkoutDate = it.date; t.checkoutTime = it.time ?? ''; t.stayName = it.note ?? t.stayName }
+    if (!it.groupId) continue
+    if (it.logistics === 'arrive') { const f = ensure(it.groupId, it.party ?? TRIP.travelers); f.arriveDate = it.date; f.arriveTime = it.time ?? '' }
+    if (it.logistics === 'depart') { const f = ensure(it.groupId, it.party ?? TRIP.travelers); f.departDate = it.date; f.departTime = it.time ?? '' }
   }
   if (byGroup.size > 0) return [...byGroup.values()]
 
-  // Legacy fallback: convert the original single-set flights into one traveler.
+  // Legacy fallback: original single-set flights → one traveler.
   const find = (id: string) => scheduled.find((s) => s.id === id)
   const arr = find('ms-arrive') ?? find('ms-depart')
   const dep = find('ms-return')
+  if (arr || dep) {
+    const f = { ...blankFlight(TRIP.travelers), groupId: 'main' }
+    if (arr) { f.arriveDate = arr.date; f.arriveTime = arr.time ?? '' }
+    if (dep) { f.departDate = dep.date; f.departTime = dep.time ?? '' }
+    return [f]
+  }
+  return [{ ...blankFlight(TRIP.travelers), groupId: 'main' }]
+}
+
+/** Build the stay list from existing scheduled items (new-style, else legacy stay). */
+function readStays(scheduled: ScheduledItem[]): Stay[] {
+  const byGroup = new Map<string, Stay>()
+  const ensure = (gid: string, who: string) => {
+    if (!byGroup.has(gid)) byGroup.set(gid, { ...blankStay(who), groupId: gid })
+    return byGroup.get(gid)!
+  }
+  for (const it of scheduled) {
+    if (!it.groupId) continue
+    if (it.logistics === 'checkin') { const s = ensure(it.groupId, it.party ?? ''); s.place = it.note ?? s.place; s.who = it.party ?? s.who; s.checkinDate = it.date; s.checkinTime = it.time ?? '' }
+    if (it.logistics === 'checkout') { const s = ensure(it.groupId, it.party ?? ''); s.place = it.note ?? s.place; s.who = it.party ?? s.who; s.checkoutDate = it.date; s.checkoutTime = it.time ?? '' }
+  }
+  if (byGroup.size > 0) return [...byGroup.values()]
+
+  // Legacy fallback: original single stay.
+  const find = (id: string) => scheduled.find((s) => s.id === id)
   const ci = find('stay-checkin')
   const co = find('stay-checkout')
-  if (arr || dep || ci) {
-    const t = blankTraveler(TRIP.travelers)
-    t.groupId = 'main'
-    if (arr) { t.arriveDate = arr.date; t.arriveTime = arr.time ?? '' }
-    if (dep) { t.departDate = dep.date; t.departTime = dep.time ?? '' }
-    if (ci) { t.stayName = ci.note ?? ''; t.checkinDate = ci.date; t.checkinTime = ci.time ?? '' }
-    if (co) { t.checkoutDate = co.date; t.checkoutTime = co.time ?? '' }
-    return [t]
+  if (ci || co) {
+    const s = { ...blankStay(''), groupId: 'main' }
+    if (ci) { s.place = ci.note ?? ci.title ?? ''; s.checkinDate = ci.date; s.checkinTime = ci.time ?? '' }
+    if (co) { s.checkoutDate = co.date; s.checkoutTime = co.time ?? '' }
+    return [s]
   }
-  return [{ ...blankTraveler(TRIP.travelers), groupId: 'main' }]
+  return []
 }
 
 function DateTime({ date, time, onDate, onTime }: { date: string; time: string; onDate: (v: string) => void; onTime: (v: string) => void }) {
@@ -95,45 +129,50 @@ function DateTime({ date, time, onDate, onTime }: { date: string; time: string; 
   )
 }
 
-/** Per-traveler editor for flights + lodging; each auto-pins onto the calendar. */
+/** Editor for flights + lodging as two independent lists; each auto-pins onto the calendar. */
 export default function TripDetailsModal({ scheduled, focusGroup, onSave, onClose }: Props) {
-  const [travelers, setTravelers] = useState<Traveler[]>(() => readTravelers(scheduled))
+  const [flights, setFlights] = useState<Flight[]>(() => readFlights(scheduled))
+  const [stays, setStays] = useState<Stay[]>(() => readStays(scheduled))
 
-  const patch = (gid: string, p: Partial<Traveler>) =>
-    setTravelers((ts) => ts.map((t) => (t.groupId === gid ? { ...t, ...p } : t)))
-  const addTraveler = () => setTravelers((ts) => [...ts, blankTraveler('')])
-  const removeTraveler = (gid: string) => setTravelers((ts) => ts.filter((t) => t.groupId !== gid))
+  const patchFlight = (gid: string, p: Partial<Flight>) =>
+    setFlights((fs) => fs.map((f) => (f.groupId === gid ? { ...f, ...p } : f)))
+  const patchStay = (gid: string, p: Partial<Stay>) =>
+    setStays((ss) => ss.map((s) => (s.groupId === gid ? { ...s, ...p } : s)))
 
   const save = () => {
     const upserts: ScheduledItem[] = []
-    for (const t of travelers) {
-      const name = t.name.trim() || 'Travelers'
-      const gid = t.groupId
+    for (const f of flights) {
+      const name = f.name.trim() || 'Travelers'
+      const gid = f.groupId
       upserts.push({
         id: `trip-${gid}-arrive`, groupId: gid, party: name, logistics: 'arrive',
-        kind: 'milestone', milestone: true, date: t.arriveDate, time: t.arriveTime || undefined,
+        kind: 'milestone', milestone: true, date: f.arriveDate, time: f.arriveTime || undefined,
         emoji: '🛬', title: `${name} — arrives`,
       })
       upserts.push({
         id: `trip-${gid}-depart`, groupId: gid, party: name, logistics: 'depart',
-        kind: 'milestone', milestone: true, date: t.departDate, time: t.departTime || undefined,
+        kind: 'milestone', milestone: true, date: f.departDate, time: f.departTime || undefined,
         emoji: '🛫', title: `${name} — departs`,
       })
-      const stay = t.stayName.trim()
-      if (stay) {
-        upserts.push({
-          id: `trip-${gid}-checkin`, groupId: gid, party: name, logistics: 'checkin',
-          kind: 'milestone', milestone: true, date: t.checkinDate, time: t.checkinTime || undefined,
-          emoji: '🏠', title: `${name} — check in (${stay})`, note: stay,
-        })
-        upserts.push({
-          id: `trip-${gid}-checkout`, groupId: gid, party: name, logistics: 'checkout',
-          kind: 'milestone', milestone: true, date: t.checkoutDate, time: t.checkoutTime || undefined,
-          emoji: '🏠', title: `${name} — check out (${stay})`, note: stay,
-        })
-      }
     }
-    // Remove any prior logistics/legacy items that we're not re-writing (deleted travelers, removed stays).
+    for (const s of stays) {
+      const place = s.place.trim()
+      if (!place) continue // a stay with no place name isn't anything yet
+      const who = s.who.trim()
+      const gid = s.groupId
+      const label = who ? `${who} — ` : ''
+      upserts.push({
+        id: `stay-${gid}-checkin`, groupId: gid, party: who || undefined, logistics: 'checkin',
+        kind: 'milestone', milestone: true, date: s.checkinDate, time: s.checkinTime || undefined,
+        emoji: '🏠', title: `${label}check in (${place})`, note: place,
+      })
+      upserts.push({
+        id: `stay-${gid}-checkout`, groupId: gid, party: who || undefined, logistics: 'checkout',
+        kind: 'milestone', milestone: true, date: s.checkoutDate, time: s.checkoutTime || undefined,
+        emoji: '🧳', title: `${label}check out (${place})`, note: place,
+      })
+    }
+    // Remove any prior logistics/legacy items we're not re-writing (deleted flights/stays).
     const keep = new Set(upserts.map((u) => u.id))
     const remove = scheduled
       .filter((s) => s.logistics || LEGACY_IDS.includes(s.id))
@@ -145,56 +184,70 @@ export default function TripDetailsModal({ scheduled, focusGroup, onSave, onClos
 
   return (
     <Modal onClose={onClose}>
-      <h3>✈️ Flights & stay</h3>
-      <p style={{ color: 'var(--text-soft)', margin: '4px 0 0', fontSize: '0.9rem' }}>
-        Add each traveler or group — their flights and lodging pin themselves onto the calendar, labeled with the name.
-      </p>
+      <div className="modal-scroll">
+        <h3>✈️ Flights &amp; stay</h3>
+        <p className="modal-intro">
+          Add flights and places to stay separately — each one pins itself onto the calendar and timeline, labeled with the name.
+        </p>
 
-      {travelers.map((t) => (
-        <div key={t.groupId} className={`traveler-card${t.groupId === focusGroup ? ' focus' : ''}`}>
-          <div className="traveler-head">
+        <div className="leg-group-title">Flights</div>
+        {flights.map((f) => (
+          <div key={f.groupId} className={`traveler-card${f.groupId === focusGroup ? ' focus' : ''}`}>
+            <div className="traveler-head">
+              <span className="card-badge">🛫</span>
+              <input
+                className="traveler-name"
+                value={f.name}
+                onChange={(e) => patchFlight(f.groupId, { name: e.target.value })}
+                placeholder="Whose flight? e.g. Alaa & Bissan"
+              />
+              <button className="mini-btn" onClick={() => setFlights((fs) => fs.filter((x) => x.groupId !== f.groupId))} aria-label="Remove flight">🗑</button>
+            </div>
+            <div className="leg-row">
+              <div className="leg-head">🛬 Arrives</div>
+              <DateTime date={f.arriveDate} time={f.arriveTime} onDate={(v) => patchFlight(f.groupId, { arriveDate: v })} onTime={(v) => patchFlight(f.groupId, { arriveTime: v })} />
+            </div>
+            <div className="leg-row">
+              <div className="leg-head">🛫 Departs</div>
+              <DateTime date={f.departDate} time={f.departTime} onDate={(v) => patchFlight(f.groupId, { departDate: v })} onTime={(v) => patchFlight(f.groupId, { departTime: v })} />
+            </div>
+          </div>
+        ))}
+        <button className="btn ghost full" onClick={() => setFlights((fs) => [...fs, blankFlight('')])}>➕ Add flight</button>
+
+        <div className="leg-group-title">Where you're staying</div>
+        {stays.map((s) => (
+          <div key={s.groupId} className={`traveler-card${s.groupId === focusGroup ? ' focus' : ''}`}>
+            <div className="traveler-head">
+              <span className="card-badge">🏠</span>
+              <input
+                className="traveler-name"
+                value={s.place}
+                onChange={(e) => patchStay(s.groupId, { place: e.target.value })}
+                placeholder="Airbnb / hotel name"
+              />
+              <button className="mini-btn" onClick={() => setStays((ss) => ss.filter((x) => x.groupId !== s.groupId))} aria-label="Remove stay">🗑</button>
+            </div>
             <input
-              className="traveler-name"
-              value={t.name}
-              onChange={(e) => patch(t.groupId, { name: e.target.value })}
-              placeholder="Whose trip? e.g. Alaa & Bissan"
+              className="traveler-stay"
+              value={s.who}
+              onChange={(e) => patchStay(s.groupId, { who: e.target.value })}
+              placeholder="Who's it for? e.g. Everyone (optional)"
             />
-            {travelers.length > 1 && (
-              <button className="mini-btn" onClick={() => removeTraveler(t.groupId)} aria-label="Remove traveler">🗑</button>
-            )}
+            <div className="leg-row">
+              <div className="leg-head">🔑 Check-in</div>
+              <DateTime date={s.checkinDate} time={s.checkinTime} onDate={(v) => patchStay(s.groupId, { checkinDate: v })} onTime={(v) => patchStay(s.groupId, { checkinTime: v })} />
+            </div>
+            <div className="leg-row">
+              <div className="leg-head">🧳 Check-out</div>
+              <DateTime date={s.checkoutDate} time={s.checkoutTime} onDate={(v) => patchStay(s.groupId, { checkoutDate: v })} onTime={(v) => patchStay(s.groupId, { checkoutTime: v })} />
+            </div>
           </div>
-          <div className="leg-row">
-            <div className="leg-head">🛬 Arrives</div>
-            <DateTime date={t.arriveDate} time={t.arriveTime} onDate={(v) => patch(t.groupId, { arriveDate: v })} onTime={(v) => patch(t.groupId, { arriveTime: v })} />
-          </div>
-          <div className="leg-row">
-            <div className="leg-head">🛫 Departs</div>
-            <DateTime date={t.departDate} time={t.departTime} onDate={(v) => patch(t.groupId, { departDate: v })} onTime={(v) => patch(t.groupId, { departTime: v })} />
-          </div>
-          <input
-            className="traveler-stay"
-            value={t.stayName}
-            onChange={(e) => patch(t.groupId, { stayName: e.target.value })}
-            placeholder="🏠 Airbnb / hotel (optional)"
-          />
-          {t.stayName.trim() && (
-            <>
-              <div className="leg-row">
-                <div className="leg-head">Check-in</div>
-                <DateTime date={t.checkinDate} time={t.checkinTime} onDate={(v) => patch(t.groupId, { checkinDate: v })} onTime={(v) => patch(t.groupId, { checkinTime: v })} />
-              </div>
-              <div className="leg-row">
-                <div className="leg-head">Check-out</div>
-                <DateTime date={t.checkoutDate} time={t.checkoutTime} onDate={(v) => patch(t.groupId, { checkoutDate: v })} onTime={(v) => patch(t.groupId, { checkoutTime: v })} />
-              </div>
-            </>
-          )}
-        </div>
-      ))}
+        ))}
+        <button className="btn ghost full" onClick={() => setStays((ss) => [...ss, blankStay('')])}>➕ Add stay</button>
+      </div>
 
-      <button className="btn ghost" onClick={addTraveler} style={{ marginTop: 12 }}>➕ Add another traveler</button>
-
-      <div className="modal-actions">
+      <div className="modal-actions sticky">
         <button className="btn ghost" onClick={onClose}>Cancel</button>
         <button className="btn" onClick={save}>Save</button>
       </div>
