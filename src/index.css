@@ -722,7 +722,7 @@ section { padding: 64px 0 26px; scroll-margin-top: 64px; }
   border-top: 1px solid var(--line);
   flex-wrap: wrap;
 }
-.leg-head { font-weight: 700; font-size: 0.9rem; flex: 1 1 140px; min-width: 0; }
+.leg-head { font-weight: 700; font-size: 0.9rem; flex: 1 1 120px; min-width: 0; }
 .leg-inputs { display: flex; gap: 8px; }
 .leg-inputs select, .leg-inputs input {
   border: 1px solid var(--line);
@@ -731,6 +731,35 @@ section { padding: 64px 0 26px; scroll-margin-top: 64px; }
   background: var(--bg);
   color: var(--text);
 }
+
+.traveler-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-top: 14px;
+  background: var(--bg-sunken);
+}
+.traveler-card.focus { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
+.traveler-head { display: flex; gap: 8px; align-items: center; }
+.traveler-name {
+  flex: 1;
+  font-weight: 700;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  background: var(--bg);
+  color: var(--text);
+}
+.traveler-stay {
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  background: var(--bg);
+  color: var(--text);
+}
+.traveler-card .leg-row:first-of-type { border-top: none; }
 .search-hint.error { color: var(--rose); }
 
 .place-results {

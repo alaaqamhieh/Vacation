@@ -79,6 +79,12 @@ export interface ScheduledItem {
   time?: string
   /** Milestones are protected: distinct styling + confirm before removal */
   milestone?: boolean
+  /** Flight/lodging role — set for items managed by the Flights & stay editor */
+  logistics?: 'arrive' | 'depart' | 'checkin' | 'checkout'
+  /** Whose flight/stay this is, e.g. "Alaa & Bissan" */
+  party?: string
+  /** Links one traveler's arrive/depart/check-in/out items together */
+  groupId?: string
 }
 
 export interface TripState {

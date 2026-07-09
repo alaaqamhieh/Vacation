@@ -28,7 +28,7 @@ type ModalState =
   | { type: 'editEvent'; item: ScheduledItem }
   | { type: 'libraryItem'; kind: 'activity' | 'restaurant' }
   | { type: 'subscribe' }
-  | { type: 'tripDetails' }
+  | { type: 'tripDetails'; focusGroup?: string }
 
 export default function App() {
   const [state, setState] = useState<TripState>(loadState)
@@ -268,7 +268,9 @@ export default function App() {
         restaurants={restaurants}
         lastAddedId={lastAddedId}
         onDropPayload={handleDropPayload}
-        onEdit={(item) => setModal({ type: 'editEvent', item })}
+        onEdit={(item) =>
+          setModal(item.logistics ? { type: 'tripDetails', focusGroup: item.groupId } : { type: 'editEvent', item })
+        }
         onRemove={handleRemove}
         onToggleMeal={handleToggleMeal}
         onOpenCalendar={() => setModal({ type: 'subscribe' })}
@@ -370,6 +372,7 @@ export default function App() {
       {modal.type === 'tripDetails' && (
         <TripDetailsModal
           scheduled={state.scheduled}
+          focusGroup={modal.focusGroup}
           onClose={() => setModal({ type: 'none' })}
           onSave={(upserts, remove) => {
             handleSaveTripDetails(upserts, remove)
