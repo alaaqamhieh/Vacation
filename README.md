@@ -28,16 +28,17 @@ no backend. External calls: OpenStreetMap tiles for the map, the Google Places A
 referrer-restricted to this site), and links out to Google Maps/Calendar. Trip facts live in
 `src/config.ts`; curated places in `src/data.ts`.
 
-## Turn on shared family sync (optional)
+## Shared family sync — ON
 
-To make everyone edit **one shared plan** (add a restaurant → the whole family sees it):
+Everyone edits **one shared plan** (add a restaurant → the whole family sees it within ~10 s), backed by a
+Firebase Realtime Database set in `SHARED_DB_URL` (`src/config.ts`). Sync is last-write-wins; each device
+keeps a local `localStorage` cache too, so the site still works offline. To turn it off, set
+`SHARED_DB_URL = ''`.
 
-1. Create a free **Firebase** project → **Build → Realtime Database → Create database** (test mode is fine
-   for a family; the URL is semi-public).
-2. Copy the database URL (e.g. `https://your-db.firebaseio.com`).
-3. Set `SHARED_DB_URL` in `src/config.ts` to `https://your-db.firebaseio.com/plan` and redeploy.
-
-Sync is last-write-wins and polls every ~10 s. With `SHARED_DB_URL` empty it stays fully local.
+> **Heads-up on Firebase rules:** the database uses test-mode security rules, which are open (anyone with
+> the URL can read/write) and **auto-expire ~30 days after the database was created**. If sync ever stops
+> during the trip, open the Firebase console → *Realtime Database → Rules* and set
+> `{ "rules": { ".read": true, ".write": true } }` (or add auth) to keep it running.
 
 ## Develop
 

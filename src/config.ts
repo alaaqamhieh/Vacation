@@ -32,11 +32,11 @@ export const WEBCAL_URL = ICS_URL.replace(/^https:/, 'webcal:')
 export const GOOGLE_PLACES_KEY = 'AIzaSyAR_iA_UYzwSP2O_O5x9hEzX8zpPY-kjlY'
 
 /**
- * Firebase Realtime Database URL for the shared family plan (e.g.
- * "https://xxx.firebaseio.com/plan"). Empty = sharing is OFF and the app runs
- * fully local. Set this to turn on live family sync for everyone.
+ * Firebase Realtime Database URL for the shared family plan. Empty = sharing is
+ * OFF and the app runs fully local. Set to a Firebase RTDB node to turn on live
+ * family sync for everyone (src/sync.ts appends ".json").
  */
-export const SHARED_DB_URL = ''
+export const SHARED_DB_URL = 'https://parent-s-vacation-default-rtdb.firebaseio.com/plan'
 
 /** Effective shared-DB URL — a window/localStorage override wins if present. */
 export function getSharedDbUrl(): string {

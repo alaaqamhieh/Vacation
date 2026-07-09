@@ -48,6 +48,21 @@ export default function App() {
   const syncVersion = useRef(0)
   // The exact state object we last adopted from remote, so we don't echo it back.
   const adoptedState = useRef<TripState | null>(null)
+  // Theme is a personal per-device preference — keep it local, never sync it.
+  const themeRef = useRef(state.theme)
+  useEffect(() => {
+    themeRef.current = state.theme
+  }, [state.theme])
+
+  const adoptRemote = (remote: Awaited<ReturnType<typeof fetchShared>>) => {
+    if (!remote) return
+    const { _meta, ...rest } = remote
+    const next: TripState = { ...rest, theme: themeRef.current }
+    syncVersion.current = _meta.updatedAt
+    adoptedState.current = next
+    setState(next)
+    setSynced(true)
+  }
 
   // On load: adopt the shared plan if it exists, else seed it with ours.
   useEffect(() => {
@@ -56,11 +71,7 @@ export default function App() {
     fetchShared().then((remote) => {
       if (cancelled) return
       if (remote) {
-        const { _meta, ...rest } = remote
-        syncVersion.current = _meta.updatedAt
-        adoptedState.current = rest
-        setState(rest)
-        setSynced(true)
+        adoptRemote(remote)
       } else {
         pushShared(state).then((ts) => {
           if (ts) {
@@ -98,10 +109,7 @@ export default function App() {
       fetchShared().then((remote) => {
         if (!remote) return
         if (remote._meta.updatedAt > syncVersion.current && remote._meta.deviceId !== deviceId()) {
-          const { _meta, ...rest } = remote
-          syncVersion.current = _meta.updatedAt
-          adoptedState.current = rest
-          setState(rest)
+          adoptRemote(remote)
         }
       })
     }, 10000)
