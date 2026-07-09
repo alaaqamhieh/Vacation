@@ -13,6 +13,16 @@ function nextDay(iso: string): string {
   return `${date.getFullYear()}${mm}${dd}`
 }
 
+/** Floating local date-time stamp, e.g. ("2026-08-01","19:30") → "20260801T193000".
+ *  `plusHours` shifts the clock (used for the +1h default end). */
+function icsDateTime(iso: string, hhmm: string, plusHours = 0): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  const [h, min] = hhmm.split(':').map(Number)
+  const dt = new Date(y, m - 1, d, h + plusHours, min)
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${dt.getFullYear()}${p(dt.getMonth() + 1)}${p(dt.getDate())}T${p(dt.getHours())}${p(dt.getMinutes())}00`
+}
+
 function escapeText(text: string): string {
   return text.replaceAll('\\', '\\\\').replaceAll(';', '\\;').replaceAll(',', '\\,').replaceAll('\n', '\\n')
 }
@@ -67,12 +77,14 @@ export function buildICS(items: ScheduledItem[], sources: IcsSources): string {
       }
     }
     if (!title) continue
+    const timed = item.time && /^\d{1,2}:\d{2}$/.test(item.time)
     lines.push(
       'BEGIN:VEVENT',
       fold(`UID:${item.id}@amman2026`),
       `DTSTAMP:${stamp}`,
-      `DTSTART;VALUE=DATE:${icsDate(item.date)}`,
-      `DTEND;VALUE=DATE:${nextDay(item.date)}`,
+      ...(timed
+        ? [`DTSTART:${icsDateTime(item.date, item.time!)}`, `DTEND:${icsDateTime(item.date, item.time!, 1)}`]
+        : [`DTSTART;VALUE=DATE:${icsDate(item.date)}`, `DTEND;VALUE=DATE:${nextDay(item.date)}`]),
       fold(`SUMMARY:${escapeText(emoji ? `${emoji} ${title}` : title)}`),
     )
     if (description) lines.push(fold(`DESCRIPTION:${escapeText(description)}`))

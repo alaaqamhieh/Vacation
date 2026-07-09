@@ -13,12 +13,13 @@ export interface AddTarget {
 
 interface Props {
   target: AddTarget
-  onAdd: (date: string, meal?: MealSlot) => void
+  onAdd: (date: string, meal?: MealSlot, time?: string) => void
   onClose: () => void
 }
 
 export default function AddToDayModal({ target, onAdd, onClose }: Props) {
   const [meal, setMeal] = useState<MealSlot>('dinner')
+  const [time, setTime] = useState('')
 
   return (
     <Modal onClose={onClose}>
@@ -38,12 +39,16 @@ export default function AddToDayModal({ target, onAdd, onClose }: Props) {
           </div>
         </div>
       )}
+      <div className="field">
+        <label>Time (optional)</label>
+        <input type="time" value={time} onChange={(e) => setTime(e.target.value)} style={{ alignSelf: 'flex-start' }} />
+      </div>
       <div className="day-pick-grid">
         {tripDays().map((day) => (
           <button
             key={day}
             className={`day-pick${day === TRIP.weddingDate ? ' wedding' : ''}`}
-            onClick={() => onAdd(day, target.kind === 'restaurant' ? meal : undefined)}
+            onClick={() => onAdd(day, target.kind === 'restaurant' ? meal : undefined, time || undefined)}
           >
             <span className="wk">Day {tripDayNumber(day)} · {weekdayShort(day)}</span>
             {formatShort(day)}

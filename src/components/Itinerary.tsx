@@ -1,6 +1,6 @@
 import { useState, type DragEvent } from 'react'
 import type { Activity, MealSlot, Restaurant, ScheduledItem } from '../types'
-import { tripDays, tripWeeks, isTripDay, formatShort, weekdayShort, tripDayNumber } from '../dateUtils'
+import { tripDays, tripWeeks, isTripDay, formatShort, weekdayShort, tripDayNumber, formatTime, timeToMinutes } from '../dateUtils'
 import { TRIP } from '../config'
 import { useReveal } from '../useReveal'
 
@@ -18,6 +18,7 @@ interface Props {
   onOpenCalendar: () => void
   onSharePlan: () => void
   onAddEvent: () => void
+  onTripDetails: () => void
 }
 
 interface Resolved {
@@ -58,13 +59,21 @@ export default function Itinerary(props: Props) {
   const ref = useReveal<HTMLElement>()
 
   const days = tripDays()
-  const mealOrder = (m?: string) => (m === 'breakfast' ? 0 : m === 'lunch' ? 1 : m === 'dinner' ? 2 : 3)
+  // Effective minutes-of-day for ordering: explicit time wins, else meal default, else noon.
+  const effMinutes = (s: ScheduledItem) => {
+    const t = timeToMinutes(s.time)
+    if (t !== null) return t
+    if (s.meal === 'breakfast') return 540
+    if (s.meal === 'lunch') return 780
+    if (s.meal === 'dinner') return 1140
+    return 720
+  }
   const byDay = (day: string) =>
     scheduled
       .filter((s) => s.date === day)
       .sort(
         (a, b) =>
-          Number(b.milestone ?? false) - Number(a.milestone ?? false) || mealOrder(a.meal) - mealOrder(b.meal),
+          Number(b.milestone ?? false) - Number(a.milestone ?? false) || effMinutes(a) - effMinutes(b),
       )
 
   const handleDrop = (e: DragEvent, day: string) => {
@@ -90,6 +99,7 @@ export default function Itinerary(props: Props) {
       >
         <span aria-hidden="true">{r.emoji}</span>
         <span className="slot-title">{r.title}</span>
+        {item.time && <span className="slot-time">{formatTime(item.time)}</span>}
         {r.meal && (
           <button
             className="slot-meal"
@@ -124,7 +134,7 @@ export default function Itinerary(props: Props) {
       <div className="container">
         <div className="section-head">
           <div className="section-kicker">The plan</div>
-          <h2 className="section-title">Our 13 days, day by day</h2>
+          <h2 className="section-title">Our {days.length} days, day by day</h2>
           <p className="section-sub">
             Drag anything from the food guide or activity library onto a day — or use the ➕ Plan button on any card.
             The pinned gold events are the ones we can't miss.
@@ -141,6 +151,7 @@ export default function Itinerary(props: Props) {
             </button>
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button className="btn ghost" onClick={props.onTripDetails}>✈️ Flights & stay</button>
             <button className="btn ghost" onClick={props.onAddEvent}>➕ Add event</button>
             <button className="btn ghost" onClick={props.onSharePlan}>🔗 Share plan</button>
             <button className="btn" onClick={props.onOpenCalendar}>📆 Calendar</button>

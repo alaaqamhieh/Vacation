@@ -24,6 +24,7 @@ export default function CustomEventModal({ initial, displayTitle, onSave, onClos
   const [note, setNote] = useState(initial?.note ?? '')
   const [important, setImportant] = useState(initial?.milestone ?? false)
   const [meal, setMeal] = useState<MealSlot>(initial?.meal ?? 'dinner')
+  const [time, setTime] = useState(initial?.time ?? '')
 
   const canSave = libraryItem || title.trim().length > 0
 
@@ -34,6 +35,7 @@ export default function CustomEventModal({ initial, displayTitle, onSave, onClos
         ...initial,
         date,
         note: note.trim() || undefined,
+        time: time || undefined,
         ...(libraryItem
           ? { meal: initial.meal ? meal : undefined }
           : { title: title.trim(), emoji, milestone: important }),
@@ -47,6 +49,7 @@ export default function CustomEventModal({ initial, displayTitle, onSave, onClos
       title: title.trim(),
       emoji,
       note: note.trim() || undefined,
+      time: time || undefined,
       milestone: important,
     })
   }
@@ -93,6 +96,10 @@ export default function CustomEventModal({ initial, displayTitle, onSave, onClos
           </div>
         </div>
       )}
+      <div className="field">
+        <label>Time (optional)</label>
+        <input type="time" value={time} onChange={(e) => setTime(e.target.value)} style={{ alignSelf: 'flex-start' }} />
+      </div>
       <div className="field">
         <label>Note (optional)</label>
         <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} />

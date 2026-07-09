@@ -84,3 +84,21 @@ export function tripDayNumber(iso: string): number {
   const d = parseISO(iso)
   return Math.round((d.getTime() - start.getTime()) / 86_400_000) + 1
 }
+
+/** "19:30" → minutes since midnight (1170); null/invalid → null. */
+export function timeToMinutes(hhmm?: string): number | null {
+  if (!hhmm || !/^\d{1,2}:\d{2}$/.test(hhmm)) return null
+  const [h, m] = hhmm.split(':').map(Number)
+  return h * 60 + m
+}
+
+/** "19:30" → "7:30 PM". Returns '' for missing/invalid input. */
+export function formatTime(hhmm?: string): string {
+  const mins = timeToMinutes(hhmm)
+  if (mins === null) return ''
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  const period = h < 12 ? 'AM' : 'PM'
+  const h12 = h % 12 === 0 ? 12 : h % 12
+  return `${h12}:${String(m).padStart(2, '0')} ${period}`
+}

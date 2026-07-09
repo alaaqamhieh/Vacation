@@ -11,6 +11,7 @@ import AddToDayModal, { type AddTarget } from './components/AddToDayModal'
 import CustomEventModal from './components/CustomEventModal'
 import LibraryItemModal from './components/LibraryItemModal'
 import SubscribeModal from './components/SubscribeModal'
+import TripDetailsModal from './components/TripDetailsModal'
 import { ACTIVITIES, RESTAURANTS } from './data'
 import { loadState, saveState } from './storage'
 import { downloadICS } from './ics'
@@ -27,6 +28,7 @@ type ModalState =
   | { type: 'editEvent'; item: ScheduledItem }
   | { type: 'libraryItem'; kind: 'activity' | 'restaurant' }
   | { type: 'subscribe' }
+  | { type: 'tripDetails' }
 
 export default function App() {
   const [state, setState] = useState<TripState>(loadState)
@@ -228,6 +230,18 @@ export default function App() {
     })
   }
 
+  const handleSaveTripDetails = (upserts: ScheduledItem[], remove: string[]) => {
+    setState((s) => {
+      const removeSet = new Set(remove)
+      const byId = new Map(upserts.map((u) => [u.id, u]))
+      const merged = s.scheduled.filter((it) => !removeSet.has(it.id)).map((it) => byId.get(it.id) ?? it)
+      for (const u of upserts) {
+        if (!s.scheduled.some((it) => it.id === u.id)) merged.push(u)
+      }
+      return { ...s, scheduled: merged }
+    })
+  }
+
   const handleTogglePacked = (id: string) => {
     setState((s) => ({
       ...s,
@@ -260,6 +274,7 @@ export default function App() {
         onOpenCalendar={() => setModal({ type: 'subscribe' })}
         onSharePlan={sharePlan}
         onAddEvent={() => setModal({ type: 'customEvent' })}
+        onTripDetails={() => setModal({ type: 'tripDetails' })}
       />
 
       <RestaurantGuide
@@ -309,13 +324,14 @@ export default function App() {
         <AddToDayModal
           target={modal.target}
           onClose={() => setModal({ type: 'none' })}
-          onAdd={(date, meal) => {
+          onAdd={(date, meal, time) => {
             addScheduled({
               id: `sch-${Date.now()}`,
               date,
               kind: modal.target.kind,
               refId: modal.target.refId,
               meal,
+              time,
             })
             setModal({ type: 'none' })
           }}
@@ -349,6 +365,16 @@ export default function App() {
         <SubscribeModal
           onClose={() => setModal({ type: 'none' })}
           onDownload={() => downloadICS(state.scheduled, { activities, restaurants })}
+        />
+      )}
+      {modal.type === 'tripDetails' && (
+        <TripDetailsModal
+          scheduled={state.scheduled}
+          onClose={() => setModal({ type: 'none' })}
+          onSave={(upserts, remove) => {
+            handleSaveTripDetails(upserts, remove)
+            setModal({ type: 'none' })
+          }}
         />
       )}
       {modal.type === 'libraryItem' && (

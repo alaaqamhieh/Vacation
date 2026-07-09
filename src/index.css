@@ -597,6 +597,15 @@ section { padding: 64px 0 26px; scroll-margin-top: 64px; }
 
 .slot-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .slot-meal { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; color: var(--slot-accent); }
+.slot-time {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--slot-accent);
+  background: color-mix(in srgb, var(--slot-accent) 15%, transparent);
+  padding: 1px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
 .slot-x {
   border: none;
   background: none;
@@ -695,6 +704,33 @@ section { padding: 64px 0 26px; scroll-margin-top: 64px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 
 .search-hint { margin: 8px 0 0; font-size: 0.82rem; color: var(--text-soft); }
+
+/* Flights & stay editor rows */
+.leg-group-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--accent);
+  margin: 18px 0 8px;
+}
+.leg-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.leg-head { font-weight: 700; font-size: 0.9rem; flex: 1 1 140px; min-width: 0; }
+.leg-inputs { display: flex; gap: 8px; }
+.leg-inputs select, .leg-inputs input {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  background: var(--bg);
+  color: var(--text);
+}
 .search-hint.error { color: var(--rose); }
 
 .place-results {

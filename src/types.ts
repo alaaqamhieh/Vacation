@@ -75,6 +75,8 @@ export interface ScheduledItem {
   emoji?: string
   note?: string
   meal?: MealSlot
+  /** Optional 24-hour time, "HH:MM" (e.g. "19:30") */
+  time?: string
   /** Milestones are protected: distinct styling + confirm before removal */
   milestone?: boolean
 }

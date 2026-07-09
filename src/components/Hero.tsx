@@ -22,11 +22,11 @@ export default function Hero({ theme, onToggleTheme }: Props) {
         <p className="hero-kicker">{TRIP.heroKicker}</p>
         <h1 className="hero-title">{TRIP.couple} 💍</h1>
         <p className="hero-names">Wedding — {TRIP.destination} · {formatShort(TRIP.weddingDate)}, 2026</p>
-        <p className="hero-dates">Trip itinerary: {formatShort(TRIP.startDate)} — {formatShort(TRIP.endDate)}, 2026</p>
+        <p className="hero-dates">Trip: {formatShort(TRIP.departDate)} — {formatShort(TRIP.returnDate)}, 2026</p>
         <Countdown target={TRIP.weddingDate} label="until the wedding" />
         <div>
           <span className="wedding-chip">
-            ✈️ Trip itinerary · {formatShort(TRIP.startDate)} – {formatShort(TRIP.endDate)}, 2026
+            ✈️ Trip · {formatShort(TRIP.departDate)} – {formatShort(TRIP.returnDate)}, 2026
           </span>
         </div>
       </div>

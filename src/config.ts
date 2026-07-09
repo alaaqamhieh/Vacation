@@ -6,9 +6,13 @@ export const TRIP = {
   couple: 'Adam & Leen',
   // Banner tagline — keep it themed around the destination.
   heroKicker: 'To the land of Petra & the Dead Sea',
-  // ISO dates, inclusive. Jul 23 = depart US, Aug 4 = fly home.
-  startDate: '2026-07-23',
-  endDate: '2026-08-04',
+  // Calendar/planning bounds, inclusive — the range you can drop things onto.
+  startDate: '2026-07-18',
+  endDate: '2026-08-10',
+  // The real travel dates (seed the flights + hero; editable per-family via
+  // the Flights & stay editor).
+  departDate: '2026-07-23',
+  returnDate: '2026-08-04',
   weddingDate: '2026-08-02',
   weddingLabel: "Adam & Leen's wedding",
 } as const

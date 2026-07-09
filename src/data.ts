@@ -115,10 +115,10 @@ export const RESTAURANTS: Restaurant[] = [
 // ---------------------------------------------------------------------------
 
 export const SEED_SCHEDULE: ScheduledItem[] = [
-  { id: 'ms-depart', date: TRIP.startDate, kind: 'milestone', milestone: true, title: 'Fly out — US ✈ Amman', emoji: '✈️', note: 'Departure day. Passports, chargers, gifts for the family!' },
+  { id: 'ms-depart', date: TRIP.departDate, kind: 'milestone', milestone: true, title: 'Fly out — US ✈ Amman', emoji: '✈️', note: 'Departure day. Passports, chargers, gifts for the family!' },
   { id: 'ms-arrive', date: '2026-07-24', kind: 'milestone', milestone: true, title: 'Land in Amman 🇯🇴', emoji: '🛬', note: 'Ahlan wa sahlan! Settle in, family hellos, and a first knafeh.' },
   { id: 'ms-wedding', date: TRIP.weddingDate, kind: 'milestone', milestone: true, title: TRIP.weddingLabel, emoji: '💍', note: 'The big day — the whole reason for the trip! Outfits ready, cameras charged.' },
-  { id: 'ms-return', date: TRIP.endDate, kind: 'milestone', milestone: true, title: 'Fly home — Amman ✈ US', emoji: '🛫', note: 'Ma’a salama, Amman. Save room in the suitcase for sweets.' },
+  { id: 'ms-return', date: TRIP.returnDate, kind: 'milestone', milestone: true, title: 'Fly home — Amman ✈ US', emoji: '🛫', note: 'Ma’a salama, Amman. Save room in the suitcase for sweets.' },
 
   // Starter suggestions — drag, edit, or remove freely.
   { id: 'seed-hashem', date: '2026-07-24', kind: 'restaurant', refId: 'res-hashem', meal: 'dinner' },
