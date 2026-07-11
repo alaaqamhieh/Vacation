@@ -432,13 +432,81 @@ section { padding: 64px 0 26px; scroll-margin-top: 64px; }
   box-shadow: 0 3px 8px rgba(20, 10, 5, 0.3);
 }
 .map-pin.food { border-color: var(--cat-food); }
+.map-pin { cursor: pointer; transition: transform 0.12s ease; }
+.map-pin:hover { transform: scale(1.15); }
+.map-pin.search {
+  border-color: var(--rose);
+  border-width: 3px;
+  animation: pin-pulse 1.6s ease-in-out infinite;
+}
+@keyframes pin-pulse {
+  0%, 100% { box-shadow: 0 3px 8px rgba(20, 10, 5, 0.3), 0 0 0 0 color-mix(in srgb, var(--rose) 60%, transparent); }
+  50% { box-shadow: 0 3px 8px rgba(20, 10, 5, 0.3), 0 0 0 8px color-mix(in srgb, var(--rose) 0%, transparent); }
+}
 
 .leaflet-popup-content { font-family: inherit; font-size: 0.88rem; line-height: 1.45; }
 .leaflet-popup-content a { color: var(--rose); font-weight: 700; }
 .pop-meta { color: #777; font-size: 0.8rem; }
 
+/* Map search toolbar */
+.map-search { display: flex; gap: 8px; margin: 6px 0 4px; flex-wrap: wrap; }
+.map-search input {
+  flex: 1 1 240px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  background: var(--bg-raised);
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+/* Map + floating detail card */
+.map-wrap { position: relative; }
+.map-detail {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: 'emoji body' 'actions actions';
+  gap: 6px 12px;
+  align-items: center;
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lift);
+  padding: 14px 16px;
+  animation: modal-in 0.28s var(--ease-spring);
+  max-width: 460px;
+  margin: 0 auto;
+}
+.map-detail-emoji { grid-area: emoji; font-size: 1.9rem; }
+.map-detail-body { grid-area: body; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.map-detail-body strong { font-size: 1.02rem; }
+.map-detail-meta { color: var(--text-soft); font-size: 0.84rem; }
+.map-detail-tag { font-size: 0.78rem; font-weight: 700; color: var(--cat-food); margin-top: 2px; }
+.map-detail-tag.new { color: var(--rose); }
+.map-detail-actions { grid-area: actions; display: flex; gap: 8px; margin-top: 4px; }
+.map-detail-actions .btn { flex: 1; justify-content: center; }
+.map-detail-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
 @media (max-width: 560px) {
   .trip-map { height: 340px; }
+  .map-detail { left: 8px; right: 8px; bottom: 8px; padding: 12px; }
+  .map-detail-emoji { font-size: 1.5rem; }
 }
 
 /* ------------------------------------------------------------ Itinerary */

@@ -16,6 +16,7 @@ import { ACTIVITIES, RESTAURANTS } from './data'
 import { loadState, saveState } from './storage'
 import { downloadICS } from './ics'
 import { encodePlan, decodePlan, planFromLocation } from './sharePlan'
+import { guessCategory, nearestRegion, type PlaceResult } from './placeSearch'
 import { isSharingOn, fetchShared, pushShared, deviceId } from './sync'
 import { burstConfetti, burstFromElement } from './confetti'
 import type { Activity, MealSlot, Restaurant, ScheduledItem, TripState } from './types'
@@ -181,6 +182,28 @@ export default function App() {
     celebrate()
   }
 
+  /** Save a place discovered on the map into the library, and return its day-picker target. */
+  const importPlace = (p: PlaceResult, kind: 'activity' | 'restaurant'): AddTarget => {
+    const id = `custom-${kind}-${Date.now()}`
+    if (kind === 'activity') {
+      const a: Activity = {
+        id, title: p.name, emoji: p.emoji, category: guessCategory(p.kind.toLowerCase().split(' ')),
+        region: nearestRegion(p.coords), duration: '2 hrs', coords: p.coords,
+        description: 'Pinned from the map.', custom: true,
+      }
+      setState((s) => ({ ...s, customActivities: [...s.customActivities, a] }))
+    } else {
+      const r: Restaurant = {
+        id, name: p.name, emoji: p.emoji, cuisine: p.cuisine ?? 'To try', neighborhood: p.neighborhood,
+        region: nearestRegion(p.coords), vibe: 'Pinned from the map', price: p.price ?? 2,
+        signature: 'TBD', orderIn: false, coords: p.coords,
+        description: 'Pinned from the map — let’s try it.', custom: true,
+      }
+      setState((s) => ({ ...s, customRestaurants: [...s.customRestaurants, r] }))
+    }
+    return { kind, refId: id, title: p.name, emoji: p.emoji }
+  }
+
   const handleDropPayload = (payload: DragPayload, date: string) => {
     if (payload.type === 'move') {
       setState((s) => ({
@@ -311,7 +334,13 @@ export default function App() {
         }
       />
 
-      <TripMap activities={activities} restaurants={restaurants} />
+      <TripMap
+        activities={activities}
+        restaurants={restaurants}
+        scheduledIds={scheduledIds}
+        onPlan={(target) => setModal({ type: 'addToDay', target })}
+        onImportPlace={importPlace}
+      />
 
       <Essentials />
       <Packing packed={state.packed} onToggle={handleTogglePacked} />
