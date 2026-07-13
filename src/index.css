@@ -767,18 +767,29 @@ section { padding: 64px 0 26px; scroll-margin-top: 64px; }
   flex-direction: column;
   min-height: 0;
 }
-.modal-scroll { min-height: 0; }
 .modal-intro { color: var(--text-soft); margin: 4px 0 0; font-size: 0.9rem; }
-/* Keeps Save/Cancel reachable when the editor grows past the viewport. */
-.modal-actions.sticky {
-  position: sticky;
-  bottom: -24px;
-  z-index: 3;
-  margin: 16px -24px -24px;
-  padding: 14px 24px calc(14px + env(safe-area-inset-bottom, 0px));
+
+/* Tall editors: the card list scrolls, Save/Cancel is a real always-visible
+   footer. dvh tracks the actual visible height on mobile (vh ignores the
+   browser chrome, which pushed the old sticky bar off/mid screen). */
+.modal.modal-tall {
+  padding: 0;
+  overflow: hidden;
+  max-height: 86vh;
+  max-height: 88dvh;
+}
+.modal-tall .modal-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px;
+  overscroll-behavior: contain;
+}
+.modal-tall .modal-actions.sticky {
+  margin: 0;
+  padding: 12px 24px calc(12px + env(safe-area-inset-bottom, 0px));
   background: var(--bg-raised);
   border-top: 1px solid var(--line);
-  border-radius: 0 0 var(--radius) var(--radius);
 }
 .btn.full { width: 100%; margin-top: 10px; justify-content: center; }
 .card-badge { font-size: 1.1rem; line-height: 1; flex: 0 0 auto; }
@@ -864,8 +875,10 @@ section { padding: 64px 0 26px; scroll-margin-top: 64px; }
 .search-hint.error { color: var(--rose); }
 
 @media (max-width: 560px) {
-  .modal { padding: 18px; max-height: 92vh; }
-  .modal-actions.sticky { bottom: -18px; margin: 14px -18px -18px; padding: 12px 18px calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .modal { padding: 18px; max-height: 92vh; max-height: 94dvh; }
+  .modal.modal-tall { padding: 0; }
+  .modal-tall .modal-scroll { padding: 16px; }
+  .modal-tall .modal-actions.sticky { padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); }
   .leg-row { gap: 6px; }
   .leg-head { flex: 1 1 100%; }
   .leg-inputs { flex: 1 1 100%; max-width: 100%; }

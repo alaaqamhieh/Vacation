@@ -190,7 +190,7 @@ export default function TripDetailsModal({ scheduled, focusGroup, onSave, onClos
   }
 
   return (
-    <Modal onClose={onClose}>
+    <Modal onClose={onClose} className="modal-tall">
       <div className="modal-scroll">
         <h3>✈️ Flights &amp; stay</h3>
         <p className="modal-intro">

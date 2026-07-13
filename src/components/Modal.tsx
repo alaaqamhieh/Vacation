@@ -3,9 +3,11 @@ import { useEffect, type ReactNode } from 'react'
 interface Props {
   onClose: () => void
   children: ReactNode
+  /** Extra class on the dialog, e.g. "modal-tall" for scroll-body + fixed-footer layout. */
+  className?: string
 }
 
-export default function Modal({ onClose, children }: Props) {
+export default function Modal({ onClose, children, className }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -21,7 +23,7 @@ export default function Modal({ onClose, children }: Props) {
 
   return (
     <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-modal="true">
+      <div className={`modal${className ? ` ${className}` : ''}`} role="dialog" aria-modal="true">
         {children}
       </div>
     </div>
