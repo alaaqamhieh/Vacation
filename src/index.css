@@ -545,13 +545,13 @@ section { padding: 64px 0 26px; scroll-margin-top: 64px; }
 }
 
 .cal-wrap { overflow-x: auto; padding-bottom: 8px; }
-.cal-inner { min-width: 840px; }
+.cal-inner { min-width: 720px; }
 
 .cal-weekhead {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 6px;
+  margin-bottom: 6px;
 }
 .cal-wd {
   text-align: center;
@@ -565,27 +565,38 @@ section { padding: 64px 0 26px; scroll-margin-top: 64px; }
 .cal-week {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 6px;
 }
 
-.day-cell.off {
-  opacity: 0.35;
+.cal-week .day-cell { padding: 6px 7px; min-height: 64px; gap: 4px; }
+.cal-week .day-cell.off {
+  opacity: 0.3;
   background: var(--bg-sunken);
   box-shadow: none;
-  min-height: 132px;
+  min-height: 0;
+  padding: 6px 7px;
 }
+.cal-week .day-cell.off .day-date { font-size: 0.72rem; font-weight: 600; color: var(--text-soft); }
+.cal-week .day-head { gap: 5px; }
+.cal-week .day-num { font-size: 0.58rem; letter-spacing: 0.08em; }
+.cal-week .day-date { font-size: 0.8rem; }
+/* Empty-day hint is noise at calendar scale — the dashed cell alone reads as a drop target. */
+.cal-week .empty-hint { display: none; }
 
-/* In the tight week grid, give slot titles their own full-width line. */
-.cal-week .slot { flex-wrap: wrap; row-gap: 2px; }
+/* In the tight week grid, give slot titles their own full-width line and compact everything. */
+.cal-week .slot { flex-wrap: wrap; row-gap: 1px; column-gap: 5px; padding: 4px 6px; }
 .cal-week .slot-title {
   flex: 1 1 100%;
   order: 5;
   white-space: normal;
   overflow: visible;
-  font-size: 0.78rem;
-  line-height: 1.25;
+  font-size: 0.72rem;
+  line-height: 1.2;
 }
+.cal-week .slot-time { font-size: 0.6rem; padding: 0 5px; }
+.cal-week .slot-meal { font-size: 0.6rem; }
+.cal-week .slot-x { font-size: 0.8rem; padding: 1px 2px; }
 
 .day-cell {
   background: var(--bg-raised);
@@ -762,6 +773,7 @@ section { padding: 64px 0 26px; scroll-margin-top: 64px; }
 .modal-actions.sticky {
   position: sticky;
   bottom: -24px;
+  z-index: 3;
   margin: 16px -24px -24px;
   padding: 14px 24px calc(14px + env(safe-area-inset-bottom, 0px));
   background: var(--bg-raised);
@@ -808,14 +820,17 @@ section { padding: 64px 0 26px; scroll-margin-top: 64px; }
   flex-wrap: wrap;
 }
 .leg-head { font-weight: 700; font-size: 0.9rem; flex: 1 1 120px; min-width: 0; }
-.leg-inputs { display: flex; gap: 8px; }
+.leg-inputs { display: flex; gap: 8px; min-width: 0; }
 .leg-inputs select, .leg-inputs input {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   padding: 7px 10px;
   background: var(--bg);
   color: var(--text);
+  min-width: 0;
 }
+.leg-inputs input[type="time"] { flex: 0 1 118px; }
+.leg-inputs input[type="time"]:disabled { opacity: 0.45; }
 
 .traveler-card {
   border: 1px solid var(--line);
@@ -853,9 +868,9 @@ section { padding: 64px 0 26px; scroll-margin-top: 64px; }
   .modal-actions.sticky { bottom: -18px; margin: 14px -18px -18px; padding: 12px 18px calc(12px + env(safe-area-inset-bottom, 0px)); }
   .leg-row { gap: 6px; }
   .leg-head { flex: 1 1 100%; }
-  .leg-inputs { flex: 1 1 100%; }
+  .leg-inputs { flex: 1 1 100%; max-width: 100%; }
   .leg-inputs select { flex: 1 1 auto; min-width: 0; }
-  .leg-inputs input[type="time"] { flex: 0 0 auto; }
+  .leg-inputs input[type="time"] { flex: 0 1 104px; min-width: 0; }
 }
 
 .place-results {
@@ -1041,20 +1056,11 @@ section { padding: 64px 0 26px; scroll-margin-top: 64px; }
 .stickynav-links a:hover { background: var(--bg-sunken); color: var(--accent); }
 .stickynav-right { display: flex; align-items: center; gap: 10px; }
 
-.sync-chip {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--olive);
-  background: color-mix(in srgb, var(--olive) 14%, transparent);
-  padding: 5px 11px;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-[data-theme='dark'] .sync-chip { color: var(--olive-soft); }
-
 @media (max-width: 620px) {
   .stickynav-brand { display: none; }
-  .stickynav-links { margin-left: 0; }
+  .stickynav-links { margin-left: 0; flex: 1; }
+  .stickynav-links a { padding: 6px 8px; font-size: 0.84rem; }
+  .stickynav-inner { gap: 8px; padding: 8px 14px; }
 }
 
 /* ---------------------------------------------------------------- Toast */

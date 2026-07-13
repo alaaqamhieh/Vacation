@@ -4,8 +4,6 @@ import { TRIP } from '../config'
 interface Props {
   theme: 'light' | 'dark' | 'auto'
   onToggleTheme: () => void
-  sharing: boolean
-  synced: boolean
 }
 
 const LINKS = [
@@ -17,7 +15,7 @@ const LINKS = [
 ]
 
 /** Slim top bar that slides in once you scroll past the hero. */
-export default function StickyNav({ theme, onToggleTheme, sharing, synced }: Props) {
+export default function StickyNav({ theme, onToggleTheme }: Props) {
   const [shown, setShown] = useState(false)
   const themeIcon = theme === 'dark' ? '🌙' : theme === 'light' ? '☀️' : '🌗'
 
@@ -38,11 +36,6 @@ export default function StickyNav({ theme, onToggleTheme, sharing, synced }: Pro
           ))}
         </nav>
         <div className="stickynav-right">
-          {sharing && (
-            <span className="sync-chip" title="Everyone's edits sync to one shared plan">
-              {synced ? '☁️ Synced' : '☁️ …'}
-            </span>
-          )}
           <button className="icon-btn" onClick={onToggleTheme} title={`Theme: ${theme}`} aria-label="Toggle color theme">
             {themeIcon}
           </button>

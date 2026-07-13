@@ -46,7 +46,6 @@ export default function App() {
 
   // --- Shared family sync (dormant unless SHARED_DB_URL is configured) ---
   const sharing = isSharingOn()
-  const [synced, setSynced] = useState(false)
   // Version (updatedAt) of the last snapshot we pushed or adopted.
   const syncVersion = useRef(0)
   // The exact state object we last adopted from remote, so we don't echo it back.
@@ -64,7 +63,6 @@ export default function App() {
     syncVersion.current = _meta.updatedAt
     adoptedState.current = next
     setState(next)
-    setSynced(true)
   }
 
   // On load: adopt the shared plan if it exists, else seed it with ours.
@@ -77,10 +75,7 @@ export default function App() {
         adoptRemote(remote)
       } else {
         pushShared(state).then((ts) => {
-          if (ts) {
-            syncVersion.current = ts
-            setSynced(true)
-          }
+          if (ts) syncVersion.current = ts
         })
       }
     })
@@ -96,10 +91,7 @@ export default function App() {
     if (!sharing || state === adoptedState.current) return
     const t = setTimeout(() => {
       pushShared(state).then((ts) => {
-        if (ts) {
-          syncVersion.current = ts
-          setSynced(true)
-        }
+        if (ts) syncVersion.current = ts
       })
     }, 1200)
     return () => clearTimeout(t)
@@ -282,7 +274,7 @@ export default function App() {
   return (
     <>
       <span id="top" />
-      <StickyNav theme={state.theme} onToggleTheme={cycleTheme} sharing={sharing} synced={synced} />
+      <StickyNav theme={state.theme} onToggleTheme={cycleTheme} />
       <Hero theme={state.theme} onToggleTheme={cycleTheme} />
 
       <Itinerary
