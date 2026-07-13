@@ -65,8 +65,9 @@ function blankStay(who: string): Stay {
 /** Build the flight list from existing scheduled items (new-style, else legacy flights). */
 function readFlights(scheduled: ScheduledItem[]): Flight[] {
   const byGroup = new Map<string, Flight>()
+  // Start read-back flights with TBD dates so a leg that isn't stored stays unset.
   const ensure = (gid: string, name: string) => {
-    if (!byGroup.has(gid)) byGroup.set(gid, { ...blankFlight(name), groupId: gid, name })
+    if (!byGroup.has(gid)) byGroup.set(gid, { ...blankFlight(name), groupId: gid, name, arriveDate: '', departDate: '' })
     return byGroup.get(gid)!
   }
   for (const it of scheduled) {
@@ -116,15 +117,16 @@ function readStays(scheduled: ScheduledItem[]): Stay[] {
   return []
 }
 
-function DateTime({ date, time, onDate, onTime }: { date: string; time: string; onDate: (v: string) => void; onTime: (v: string) => void }) {
+function DateTime({ date, time, onDate, onTime, optional }: { date: string; time: string; onDate: (v: string) => void; onTime: (v: string) => void; optional?: boolean }) {
   return (
     <div className="leg-inputs">
       <select value={date} onChange={(e) => onDate(e.target.value)}>
+        {optional && <option value="">— TBD —</option>}
         {DAYS.map((d) => (
           <option key={d} value={d}>{weekdayShort(d)}, {formatShort(d)}</option>
         ))}
       </select>
-      <input type="time" value={time} onChange={(e) => onTime(e.target.value)} />
+      <input type="time" value={time} onChange={(e) => onTime(e.target.value)} disabled={optional && !date} />
     </div>
   )
 }
@@ -144,16 +146,21 @@ export default function TripDetailsModal({ scheduled, focusGroup, onSave, onClos
     for (const f of flights) {
       const name = f.name.trim() || 'Travelers'
       const gid = f.groupId
-      upserts.push({
-        id: `trip-${gid}-arrive`, groupId: gid, party: name, logistics: 'arrive',
-        kind: 'milestone', milestone: true, date: f.arriveDate, time: f.arriveTime || undefined,
-        emoji: '🛬', title: `${name} — arrives`,
-      })
-      upserts.push({
-        id: `trip-${gid}-depart`, groupId: gid, party: name, logistics: 'depart',
-        kind: 'milestone', milestone: true, date: f.departDate, time: f.departTime || undefined,
-        emoji: '🛫', title: `${name} — departs`,
-      })
+      // A leg with a TBD date isn't written — no fabricated flights on the calendar.
+      if (f.arriveDate) {
+        upserts.push({
+          id: `trip-${gid}-arrive`, groupId: gid, party: name, logistics: 'arrive',
+          kind: 'milestone', milestone: true, date: f.arriveDate, time: f.arriveTime || undefined,
+          emoji: '🛬', title: `${name} — arrives`,
+        })
+      }
+      if (f.departDate) {
+        upserts.push({
+          id: `trip-${gid}-depart`, groupId: gid, party: name, logistics: 'depart',
+          kind: 'milestone', milestone: true, date: f.departDate, time: f.departTime || undefined,
+          emoji: '🛫', title: `${name} — departs`,
+        })
+      }
     }
     for (const s of stays) {
       const place = s.place.trim()
@@ -205,11 +212,11 @@ export default function TripDetailsModal({ scheduled, focusGroup, onSave, onClos
             </div>
             <div className="leg-row">
               <div className="leg-head">🛬 Arrives</div>
-              <DateTime date={f.arriveDate} time={f.arriveTime} onDate={(v) => patchFlight(f.groupId, { arriveDate: v })} onTime={(v) => patchFlight(f.groupId, { arriveTime: v })} />
+              <DateTime optional date={f.arriveDate} time={f.arriveTime} onDate={(v) => patchFlight(f.groupId, { arriveDate: v })} onTime={(v) => patchFlight(f.groupId, { arriveTime: v })} />
             </div>
             <div className="leg-row">
               <div className="leg-head">🛫 Departs</div>
-              <DateTime date={f.departDate} time={f.departTime} onDate={(v) => patchFlight(f.groupId, { departDate: v })} onTime={(v) => patchFlight(f.groupId, { departTime: v })} />
+              <DateTime optional date={f.departDate} time={f.departTime} onDate={(v) => patchFlight(f.groupId, { departDate: v })} onTime={(v) => patchFlight(f.groupId, { departTime: v })} />
             </div>
           </div>
         ))}
